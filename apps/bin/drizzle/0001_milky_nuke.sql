@@ -1,0 +1,1 @@
+ALTER TABLE avitoBin ADD `request` text NOT NULL;

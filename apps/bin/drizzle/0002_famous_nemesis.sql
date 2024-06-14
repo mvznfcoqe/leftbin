@@ -1,0 +1,1 @@
+ALTER TABLE avitoBin ADD `created_at` integer DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL;

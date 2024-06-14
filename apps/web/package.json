@@ -1,0 +1,33 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@farfetched/core": "^0.12.4",
+    "@farfetched/zod": "^0.12.4",
+    "core-js": "^3.37.1",
+    "effector": "^23.2.2",
+    "forest": "^0.21.2",
+    "patronum": "^1.19.1",
+    "vite-plugin-babel": "^1.2.0",
+    "vite-tsconfig-paths": "^4.3.2",
+    "zod": "^3.23.8"
+  },
+  "overrides": {
+    "forest": "^0.21.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vite": "^5.2.13"
+  }
+}

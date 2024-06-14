@@ -1,0 +1,37 @@
+{
+  "name": "leftbin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "bun ./src/main.ts",
+    "migrate": "bun ./src/migrate.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hono/zod-validator": "^0.2.2",
+    "@types/user-agents": "^1.0.4",
+    "better-sqlite3": "^9.5.0",
+    "dotenv": "^16.4.5",
+    "drizzle-orm": "^0.30.7",
+    "hono": "^4.4.4",
+    "node-cron": "^3.0.3",
+    "pino": "^8.20.0",
+    "playwright": "^1.43.0",
+    "typescript": "^5.4.5",
+    "ufo": "^1.5.3",
+    "user-agents": "^1.1.166",
+    "zod": "^3.23.8",
+    "zx": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.9",
+    "@types/node-cron": "^3.0.11",
+    "bun-types": "^1.1.2",
+    "drizzle-kit": "^0.20.14"
+  }
+}

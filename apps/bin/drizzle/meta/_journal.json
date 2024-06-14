@@ -1,0 +1,27 @@
+{
+  "version": "5",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1713632243222,
+      "tag": "0000_fuzzy_mandrill",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1713633489141,
+      "tag": "0001_milky_nuke",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1713639744401,
+      "tag": "0002_famous_nemesis",
+      "breakpoints": true
+    }
+  ]
+}
