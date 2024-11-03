@@ -1,0 +1,22 @@
+{
+  "name": "bot",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/pg": "^8.11.10",
+    "drizzle-kit": "^0.26.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.35.3",
+    "grammy": "^1.29.0",
+    "ofetch": "^1.4.1",
+    "pg": "^8.13.1"
+  }
+}

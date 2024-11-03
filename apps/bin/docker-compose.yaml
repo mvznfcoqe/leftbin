@@ -1,0 +1,12 @@
+services:
+  bin:
+    build: .
+    ports:
+      - 9001:9001
+    volumes:
+      - bin:/app
+    environment:
+      AUTH_TOKEN: noauth
+
+volumes:
+  bin:

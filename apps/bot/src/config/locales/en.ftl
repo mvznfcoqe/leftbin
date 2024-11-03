@@ -1,0 +1,9 @@
+request-bin-data = Send your link to Bin with token included in query string.
+bin-url-invalid = The provided Bin link is invalid; please verify and try again.
+bin-data-invalid = The provided Bin link is invalid; please verify and try again. You can add Bin using /addbin command.
+trying-access-to-bin = Trying to check Bin status...
+bin-status-active = Bin is working.
+bin-successfully-added = Bin successfully added.
+bin-auth-failed = Failed to authorized to Bin
+bin-check-status-failed = Failed to check Bin status
+bin-already-added = Bin with this URL already added

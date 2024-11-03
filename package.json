@@ -1,0 +1,18 @@
+{
+  "name": "leftbin",
+  "module": "index.ts",
+  "type": "module",
+  "workspaces": [
+    "apps/*"
+  ],
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@grammyjs/conversations": "^1.2.0",
+    "@grammyjs/i18n": "^1.1.2"
+  }
+}

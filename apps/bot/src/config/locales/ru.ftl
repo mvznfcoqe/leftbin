@@ -1,0 +1,1 @@
+requestBinData = Сенд ми ё бин урл
