@@ -2,6 +2,7 @@ import playwright from "playwright";
 import { db, schema } from "@/schema";
 import { eq } from "drizzle-orm";
 import { info } from "./info";
+import type { ServiceResponse } from "@/models/lib/types";
 
 type AviasalesVacancy = {
   name: string | null;
@@ -10,13 +11,12 @@ type AviasalesVacancy = {
 
 type GetVacanciesParams = {
   nameIncludes?: string;
-  omitOld?: boolean;
 };
 
 const getVacancies = async (
   context: playwright.BrowserContext,
   params: GetVacanciesParams = {}
-) => {
+): Promise<ServiceResponse<AviasalesVacancy>> => {
   const services = await db
     .select()
     .from(schema.service)
@@ -56,30 +56,6 @@ const getVacancies = async (
     serviceId: service.id,
     method: info.methods.getVacancies,
   });
-
-  if (!params.omitOld) {
-    const serviceData = await db
-      .select()
-      .from(schema.serviceData)
-      .where(eq(schema.serviceData.serviceId, service.id));
-    const previousServiceData = serviceData.at(1);
-
-    if (!previousServiceData) return { data: vacancies };
-
-    const previousServiceDataList =
-      previousServiceData.data as AviasalesVacancy[];
-
-    const newDataFields = previousServiceDataList.reduce((acc, vacancy) => {
-      if (previousServiceDataList.some(({ name }) => name === vacancy.name))
-        return acc;
-
-      acc.push(vacancy);
-
-      return acc;
-    }, [] as AviasalesVacancy[]);
-
-    return { data: newDataFields };
-  }
 
   return { data: vacancies };
 };

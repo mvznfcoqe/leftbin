@@ -6,5 +6,6 @@ export const check = new Hono();
 check.get("/", (ctx) => {
   return ctx.json({
     version: version,
+    ok: true,
   });
 });

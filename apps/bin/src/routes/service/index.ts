@@ -5,7 +5,7 @@ import { db, schema } from "../../schema";
 import { eq } from "drizzle-orm";
 import { getActiveServices } from "../../models/services";
 import { services } from "@/models/service";
-import { firefox } from "playwright";
+import { parserQueue, parserWorkerName } from "@/workers/parser";
 
 export const service = new Hono();
 
@@ -79,37 +79,12 @@ service.get(
       return ctx.json({}, { status: 404 });
     }
 
-    const browser = await firefox.launch();
-    const context = await browser.newContext();
+    await parserQueue.add(parserWorkerName, {
+      methodName: method,
+      query: query,
+      serviceName: name,
+    });
 
-    const data = await methodFn(context, query);
-
-    return ctx.json(data);
-  }
-);
-
-service.get(
-  "/all",
-  zValidator("query", serviceMethodParamsDTO),
-  async (ctx) => {
-    const query = ctx.req.valid("query");
-
-    const data = Object.entries(services).reduce(
-      async (acc, [serviceName, value]) => {
-        const browser = await firefox.launch();
-        const context = await browser.newContext();
-
-        for (const [methodName, method] of Object.entries(value)) {
-          const data = await method(context, query);
-
-          acc[serviceName][methodName] = data;
-        }
-
-        return acc;
-      },
-      {} as Record<string, any>
-    );
-
-    return ctx.json(data);
+    return ctx.json({}, { status: 201 });
   }
 );
