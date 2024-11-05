@@ -1,8 +1,4 @@
 import { aviasalesVacanciesService } from "./aviasales-vacancies";
+import type { Service } from "./lib";
 
-export const services = {
-  [aviasalesVacanciesService.info.name]: {
-    [aviasalesVacanciesService.info.methods.getVacancies]:
-      aviasalesVacanciesService.getVacancies,
-  },
-};
+export const services: Service[] = [aviasalesVacanciesService];

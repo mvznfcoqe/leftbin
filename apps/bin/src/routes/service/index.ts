@@ -67,13 +67,13 @@ service.get(
     const name = ctx.req.param("name");
     const method = ctx.req.param("method");
 
-    const service = services[name];
+    const service = services.find(service => service.info.name === name);
 
     if (!service) {
       return ctx.json({}, { status: 404 });
     }
 
-    const methodFn = service[method];
+    const methodFn = service.methods[method];
 
     if (!methodFn) {
       return ctx.json({}, { status: 404 });

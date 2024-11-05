@@ -3,13 +3,14 @@ import { Hono } from "hono";
 import pino from "pino";
 
 import { env } from "./env";
-import { init } from "./init";
+import { init, startRepeatableJobs } from "./init";
 import { db, schema } from "./schema";
 import { eq } from "drizzle-orm";
 import { check } from "./routes/check";
 import { service } from "./routes/service";
 
 import { bearerAuth } from "hono/bearer-auth";
+import { parserWorker } from "./workers/parser";
 
 export const logger = pino({ level: "debug" });
 
@@ -35,9 +36,19 @@ try {
 
     logger.info(`Bin initialized with name "${env.NAME}"`);
   }
+
+  if (env.NODE_ENV !== "development") {
+    await startRepeatableJobs();
+  }
 } catch (e) {
-  console.log(e);
+  logger.error(e);
 }
+
+process.on("SIGINT", async () => {
+  if (env.NODE_ENV === "development") {
+    await parserWorker.close(true);
+  }
+});
 
 logger.info(
   `

@@ -1,22 +1,23 @@
-import playwright from "playwright";
 import { db, schema } from "@/schema";
 import { eq } from "drizzle-orm";
 import { info } from "./info";
-import type { ServiceResponse } from "@/models/lib/types";
+import type { ServiceMethodFn } from "@/models/lib/types";
 
-type AviasalesVacancy = {
+type Vacancy = {
   name: string | null;
   url: string | null;
 };
 
-type GetVacanciesParams = {
+type Params = {
   nameIncludes?: string;
 };
 
-const getVacancies = async (
-  context: playwright.BrowserContext,
-  params: GetVacanciesParams = {}
-): Promise<ServiceResponse<AviasalesVacancy>> => {
+export const getVacanciesMethodName = "get-vacancies";
+
+const getVacancies: ServiceMethodFn<Params, Vacancy> = async ({
+  context,
+  params,
+}) => {
   const services = await db
     .select()
     .from(schema.service)
@@ -26,7 +27,7 @@ const getVacancies = async (
 
   if (!service || !service.active) return;
 
-  const vacancies: AviasalesVacancy[] = [];
+  const vacancies: Vacancy[] = [];
 
   const page = await context.newPage();
   await page.goto(service.baseUrl);
@@ -44,7 +45,9 @@ const getVacancies = async (
     const url = await locators[index].getAttribute("href");
 
     if (!name || !url) break;
-    if (params.nameIncludes && !name.includes(params.nameIncludes)) break;
+    if (params && params.nameIncludes && !name.includes(params.nameIncludes)) {
+      break;
+    }
 
     const base = new URL(service.baseUrl).origin;
 
@@ -54,7 +57,7 @@ const getVacancies = async (
   await db.insert(schema.serviceData).values({
     data: vacancies,
     serviceId: service.id,
-    method: info.methods.getVacancies,
+    method: "get-vacancies",
   });
 
   return { data: vacancies };

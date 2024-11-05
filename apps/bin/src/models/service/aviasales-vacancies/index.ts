@@ -1,11 +1,16 @@
 import { init } from "./init";
-import { getVacancies } from "./get-vacancies";
 import { info } from "./info";
+import type { Service } from "../lib";
+import type { ServiceMethodFn } from "@/models/lib/types";
 
-const aviasalesVacanciesService = {
+const aviasalesVacanciesService: Service = {
   init,
-  getVacancies,
   info,
+  methods: info.methods.reduce((acc, method) => {
+    acc[method.name] = method.fn;
+
+    return acc;
+  }, {} as Record<string, ServiceMethodFn>),
 };
 
 export { aviasalesVacanciesService };
