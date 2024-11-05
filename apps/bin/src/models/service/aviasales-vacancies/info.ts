@@ -9,7 +9,7 @@ const info: Service["info"] = {
     {
       name: getVacanciesMethodName,
       fields: { name: "Название вакансии", url: "Ссылка" },
-      recheckTime: 86400000,
+      recheckTime: 30000,
       fn: getVacancies,
     },
   ],

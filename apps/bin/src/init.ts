@@ -6,6 +6,7 @@ import { parserQueue, parserWorkerName } from "./workers/parser";
 
 const initBin = async (bin: typeof schema.bin.$inferInsert) => {
   await db.insert(schema.bin).values(bin);
+  await db.insert(schema.user).values({ name: "admin" });
 };
 
 const initServices = async () => {

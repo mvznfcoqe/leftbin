@@ -1,4 +1,4 @@
-import { FetchError, ofetch } from "ofetch";
+import { FetchError } from "ofetch";
 import { binConfig } from "../config/bin";
 import type { MyContext, MyConversation } from "../lib/grammy";
 import { db, schema } from "../schema";
@@ -25,7 +25,14 @@ const checkBinStatus = async ({
 
       return false;
     }
+
+    if (response.ok) {
+      await ctx.reply(ctx.t("bin-status-active"));
+
+      return true;
+    }
   } catch (e) {
+    console.log(e);
     if (e instanceof FetchError) {
       if (e.status === 401) {
         ctx.reply(ctx.t("bin-auth-failed"));
@@ -36,10 +43,6 @@ const checkBinStatus = async ({
 
     return false;
   }
-
-  await ctx.reply(ctx.t("bin-status-active"));
-
-  return true;
 };
 
 const getBinDataFromUrl = async ({
@@ -99,6 +102,16 @@ const addBin = async (conversation: MyConversation, ctx: MyContext) => {
     if (!isBinActive) {
       return;
     }
+
+    if (!ctx.from?.id) {
+      return;
+    }
+
+    await api.bin.setup({
+      baseUrl: binData.url,
+      token: binData.token,
+      telegramId: ctx.from.id,
+    });
 
     await db.insert(schema.bin).values({
       userId: user.id,

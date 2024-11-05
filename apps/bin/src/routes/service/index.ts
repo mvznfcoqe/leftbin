@@ -6,8 +6,11 @@ import { eq } from "drizzle-orm";
 import { getActiveServices } from "../../models/services";
 import { services } from "@/models/service";
 import { parserQueue, parserWorkerName } from "@/workers/parser";
+import { bearerAuth } from "hono/bearer-auth";
+import { env } from "@/env";
 
-export const service = new Hono();
+const service = new Hono();
+service.use("/*", bearerAuth({ token: env.AUTH_TOKEN }));
 
 const addCookiesDTO = z.object({
   cookies: z.array(
@@ -67,7 +70,7 @@ service.get(
     const name = ctx.req.param("name");
     const method = ctx.req.param("method");
 
-    const service = services.find(service => service.info.name === name);
+    const service = services.find((service) => service.info.name === name);
 
     if (!service) {
       return ctx.json({}, { status: 404 });
@@ -88,3 +91,5 @@ service.get(
     return ctx.json({}, { status: 201 });
   }
 );
+
+export { service };

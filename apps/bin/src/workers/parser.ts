@@ -1,10 +1,12 @@
 import { services } from "@/models/service";
 import { Job, Queue, Worker } from "bullmq";
 import { firefox } from "playwright";
-
 import { logger } from "..";
 import type { ServiceResponse } from "@/models/lib/types";
 import { connection } from "./connection";
+import { bot } from "@/bot";
+import { db, schema } from "@/schema";
+import { eq } from "drizzle-orm";
 
 export const parserWorkerName = "parserQueue";
 
@@ -26,6 +28,7 @@ export const parserWorker = new Worker(
     const service = services.find(
       (service) => service.info.name === serviceName
     );
+
     if (!service) {
       return;
     }
@@ -36,6 +39,23 @@ export const parserWorker = new Worker(
     const context = await browser.newContext();
 
     const parsed = await methodFn({ context, params: query });
+
+    const user = await db.query.user.findFirst({
+      where: eq(schema.user.name, "admin"),
+    });
+
+    if (!user || !user.telegramId) {
+      return parsed;
+    }
+
+    await bot.api.sendMessage(
+      user.telegramId,
+      `
+        Сервис: ${serviceName},
+        Метод: ${methodName},
+        Данные: ${parsed?.data.toString()}
+    `
+    );
 
     return parsed;
   },

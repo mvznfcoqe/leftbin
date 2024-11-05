@@ -10,7 +10,7 @@ export const addService = async ({
   const insertedServices = await db
     .insert(schema.service)
     .values({ active, baseUrl, name })
-    .returning({ insertedId: schema.service.id });
+    .returning();
 
   const insertedService = insertedServices[0];
 
@@ -18,21 +18,21 @@ export const addService = async ({
     const insertedMethods = await db
       .insert(schema.serviceMethod)
       .values({
-        serviceId: insertedService.insertedId,
+        serviceId: insertedService.id,
         active: true,
         name: method.name,
         recheckTime: method.recheckTime,
       })
-      .returning({ insertedId: schema.serviceMethod.id });
+      .returning();
 
     const insertedMethod = insertedMethods[0];
 
     for (const [name, title] of Object.entries(method.fields)) {
       await db.insert(schema.serviceMethodField).values({
-        methodId: insertedMethod.insertedId,
+        methodId: insertedMethod.id,
         name,
         title,
-        serviceId: insertedService.insertedId,
+        serviceId: insertedService.id,
       });
     }
   }

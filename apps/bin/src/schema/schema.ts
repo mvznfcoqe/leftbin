@@ -1,56 +1,67 @@
-import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  integer,
+  pgTable,
+  text,
+  boolean,
+  json,
+  timestamp,
+  serial,
+  bigint,
+} from "drizzle-orm/pg-core";
 
-const bin = sqliteTable("bin", {
-  name: text("name").primaryKey(),
-  initialized: integer("initialized", { mode: "boolean" }),
+const bin = pgTable("bin", {
+  name: text().primaryKey(),
+  initialized: boolean("initialized"),
 
-  createdAt: integer("created_at", { mode: "number" })
-    .default(sql`(unixepoch())`)
-    .notNull(),
-  updatedAt: integer("updated_at", { mode: "number" })
-    .notNull()
-    .default(sql`(unixepoch())`)
-    .$onUpdate(() => sql`(unixepoch())`),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
-const service = sqliteTable("service", {
-  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+const user = pgTable("user", {
+  id: serial().primaryKey(),
+  telegramId: text().unique(),
+
+  name: text("name").unique().notNull(),
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+const service = pgTable("service", {
+  id: serial().primaryKey(),
   name: text("name").notNull().unique(),
   baseUrl: text("base_url").notNull(),
-  active: integer("active", { mode: "boolean" }).notNull(),
+  active: boolean("active").notNull(),
 
-  createdAt: integer("created_at", { mode: "number" })
-    .default(sql`(unixepoch())`)
-    .notNull(),
-  updatedAt: integer("updated_at", { mode: "number" })
-    .notNull()
-    .default(sql`(unixepoch())`)
-    .$onUpdate(() => sql`(unixepoch())`),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
-const serviceMethod = sqliteTable("service_method", {
-  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+const serviceMethod = pgTable("service_method", {
+  id: serial().primaryKey(),
 
-  active: integer("active", { mode: "boolean" }).notNull(),
+  active: boolean("active").notNull(),
 
   serviceId: integer("service_id")
     .references(() => service.id)
     .notNull(),
   name: text("method").notNull(),
-  recheckTime: integer("recheck_time", { mode: "number" }),
+  recheckTime: integer("recheck_time"),
 
-  createdAt: integer("created_at", { mode: "number" })
-    .default(sql`(unixepoch())`)
-    .notNull(),
-  updatedAt: integer("updated_at", { mode: "number" })
-    .notNull()
-    .default(sql`(unixepoch())`)
-    .$onUpdate(() => sql`(unixepoch())`),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
-const serviceMethodField = sqliteTable("service_method_field", {
-  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+const serviceMethodField = pgTable("service_method_field", {
+  id: serial().primaryKey(),
   name: text("method").notNull(),
   title: text("title").notNull(),
   serviceId: integer("service_id")
@@ -60,35 +71,29 @@ const serviceMethodField = sqliteTable("service_method_field", {
     .references(() => serviceMethod.id)
     .notNull(),
 
-  createdAt: integer("created_at", { mode: "number" })
-    .default(sql`(unixepoch())`)
-    .notNull(),
-  updatedAt: integer("updated_at", { mode: "number" })
-    .notNull()
-    .default(sql`(unixepoch())`)
-    .$onUpdate(() => sql`(unixepoch())`),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
-const serviceData = sqliteTable("service_data", {
-  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+const serviceData = pgTable("service_data", {
+  id: serial().primaryKey(),
   serviceId: integer("service_id")
     .references(() => service.id)
     .notNull(),
 
   method: text("method").notNull(),
-  data: text("data", { mode: "json" }).notNull(),
+  data: json("data").notNull(),
 
-  createdAt: integer("created_at", { mode: "number" })
-    .default(sql`(unixepoch())`)
-    .notNull(),
-  updatedAt: integer("updated_at", { mode: "number" })
-    .notNull()
-    .default(sql`(unixepoch())`)
-    .$onUpdate(() => sql`(unixepoch())`),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
-const cookie = sqliteTable("cookie", {
-  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+const cookie = pgTable("cookie", {
+  id: serial().primaryKey(),
   serviceId: integer("service_id")
     .references(() => service.id)
     .notNull(),
@@ -98,16 +103,21 @@ const cookie = sqliteTable("cookie", {
   domain: text("domain").notNull(),
   path: text("path").notNull(),
   expires: integer("expires").notNull(),
-  httpOnly: integer("http_only", { mode: "boolean" }),
-  secure: integer("secure", { mode: "boolean" }),
+  httpOnly: boolean("http_only"),
+  secure: boolean("secure"),
 
-  createdAt: integer("created_at", { mode: "number" })
-    .default(sql`(unixepoch())`)
-    .notNull(),
-  updatedAt: integer("updated_at", { mode: "number" })
-    .notNull()
-    .default(sql`(unixepoch())`)
-    .$onUpdate(() => sql`(unixepoch())`),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
-export { bin, service, serviceMethod, serviceMethodField, serviceData, cookie };
+export {
+  bin,
+  user,
+  service,
+  serviceMethod,
+  serviceMethodField,
+  serviceData,
+  cookie,
+};

@@ -10,7 +10,7 @@ import { check } from "./routes/check";
 import { service } from "./routes/service";
 
 import { bearerAuth } from "hono/bearer-auth";
-import { parserWorker } from "./workers/parser";
+import { notifications } from "./routes/notifications";
 
 export const logger = pino({ level: "debug" });
 
@@ -20,10 +20,9 @@ if (!env.AUTH_TOKEN) {
 
 const app = new Hono({}).basePath("/api");
 
-app.use("/*", bearerAuth({ token: env.AUTH_TOKEN }));
-
 app.route("/check", check);
 app.route("/service", service);
+app.route("/notifications", notifications);
 
 try {
   const bin = await db
@@ -37,18 +36,12 @@ try {
     logger.info(`Bin initialized with name "${env.NAME}"`);
   }
 
-  if (env.NODE_ENV !== "development") {
-    await startRepeatableJobs();
-  }
+  // if (env.NODE_ENV !== "development") {
+  await startRepeatableJobs();
+  // }
 } catch (e) {
   logger.error(e);
 }
-
-process.on("SIGINT", async () => {
-  if (env.NODE_ENV === "development") {
-    await parserWorker.close(true);
-  }
-});
 
 logger.info(
   `
