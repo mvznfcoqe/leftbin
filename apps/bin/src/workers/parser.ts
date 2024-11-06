@@ -2,11 +2,13 @@ import { services } from "@/models/service";
 import { Job, Queue, Worker } from "bullmq";
 import { firefox } from "playwright";
 import { logger } from "..";
-import type { ServiceResponse } from "@/models/lib/types";
+
 import { connection } from "./connection";
 import { bot } from "@/bot";
 import { db, schema } from "@/schema";
 import { eq } from "drizzle-orm";
+import { formatServiceMethodData } from "@/models/notifications/lib";
+import type { ServiceResponse } from "@/models/service/lib";
 
 export const parserWorkerName = "parserQueue";
 
@@ -33,12 +35,24 @@ export const parserWorker = new Worker(
       return;
     }
 
+    const methodInfo = service.info.methods.find(
+      (method) => method.name === methodName
+    );
+
+    if (!methodInfo) {
+      return;
+    }
+
     const methodFn = service.methods[methodName];
 
     const browser = await firefox.launch();
     const context = await browser.newContext();
 
     const parsed = await methodFn({ context, params: query });
+
+    if (!parsed?.data) {
+      return;
+    }
 
     const user = await db.query.user.findFirst({
       where: eq(schema.user.name, "admin"),
@@ -48,13 +62,17 @@ export const parserWorker = new Worker(
       return parsed;
     }
 
+    const formattedData = formatServiceMethodData({
+      data: parsed?.data,
+      method: methodInfo,
+    });
+
     await bot.api.sendMessage(
       user.telegramId,
       `
-        Сервис: ${serviceName},
-        Метод: ${methodName},
-        Данные: ${parsed?.data.toString()}
-    `
+Сервис: ${service.info.title}
+${formattedData}
+      `
     );
 
     return parsed;

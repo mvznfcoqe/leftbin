@@ -2,14 +2,13 @@ import { db, schema } from "../../schema";
 import type { Service } from "../service/lib";
 
 export const addService = async ({
-  active,
   baseUrl,
   name,
   methods,
 }: Service["info"]) => {
   const insertedServices = await db
     .insert(schema.service)
-    .values({ active, baseUrl, name })
+    .values({ baseUrl, name })
     .returning();
 
   const insertedService = insertedServices[0];
@@ -19,7 +18,7 @@ export const addService = async ({
       .insert(schema.serviceMethod)
       .values({
         serviceId: insertedService.id,
-        active: true,
+
         name: method.name,
         recheckTime: method.recheckTime,
       })
@@ -27,11 +26,11 @@ export const addService = async ({
 
     const insertedMethod = insertedMethods[0];
 
-    for (const [name, title] of Object.entries(method.fields)) {
+    for (const field of method.fields) {
       await db.insert(schema.serviceMethodField).values({
         methodId: insertedMethod.id,
-        name,
-        title,
+        name: field.name,
+        title: field.title,
         serviceId: insertedService.id,
       });
     }

@@ -6,7 +6,6 @@ import {
   json,
   timestamp,
   serial,
-  bigint,
 } from "drizzle-orm/pg-core";
 
 const bin = pgTable("bin", {
@@ -35,7 +34,6 @@ const service = pgTable("service", {
   id: serial().primaryKey(),
   name: text("name").notNull().unique(),
   baseUrl: text("base_url").notNull(),
-  active: boolean("active").notNull(),
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at")
@@ -45,8 +43,6 @@ const service = pgTable("service", {
 
 const serviceMethod = pgTable("service_method", {
   id: serial().primaryKey(),
-
-  active: boolean("active").notNull(),
 
   serviceId: integer("service_id")
     .references(() => service.id)

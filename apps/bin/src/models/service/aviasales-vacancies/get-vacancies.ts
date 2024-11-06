@@ -25,7 +25,7 @@ const getVacancies: ServiceMethodFn<Params, Vacancy> = async ({
 
   const service = services[0];
 
-  if (!service || !service.active) return;
+  if (!service) return;
 
   const vacancies: Vacancy[] = [];
 
@@ -44,7 +44,10 @@ const getVacancies: ServiceMethodFn<Params, Vacancy> = async ({
       .textContent();
     const url = await locators[index].getAttribute("href");
 
-    if (!name || !url) break;
+    const isDataInvalid = !name || !url
+    if (isDataInvalid) {
+      break;
+    }
     if (params && params.nameIncludes && !name.includes(params.nameIncludes)) {
       break;
     }

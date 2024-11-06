@@ -3,12 +3,16 @@ import { getVacancies, getVacanciesMethodName } from "./get-vacancies";
 
 const info: Service["info"] = {
   name: "aviasales-vacancies",
+  title: "Вакансии Aviasales",
   baseUrl: "https://www.aviasales.ru/about/vacancies",
-  active: true,
   methods: [
     {
       name: getVacanciesMethodName,
-      fields: { name: "Название вакансии", url: "Ссылка" },
+      title: "Вакансии",
+      fields: [
+        { title: "Название вакансии", name: "name" },
+        { title: "Ссылка", name: "url" },
+      ],
       recheckTime: 30000,
       fn: getVacancies,
     },
