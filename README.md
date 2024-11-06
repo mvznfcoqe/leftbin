@@ -1,15 +1,5 @@
-# leftbin
+# Leftbin 🗑️📃 - automate your [doomchecking](https://link.springer.com/article/10.1007/s11229-024-04602-2). Set up monitoring services to track website changes, receive notifications, and have updates delivered directly to your messenger.
 
-To install dependencies:
+## Setup
 
-```bash
-bun install
-```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.1.21. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+1. Selfhosted **(WIP)**
