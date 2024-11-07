@@ -1,6 +1,6 @@
 import type { ServiceMethod } from "@/models/service/lib";
 import { describe, expect, test } from "bun:test";
-import { formatServiceMethodData, methodDataDivider } from ".";
+import { formatServiceMethodData } from ".";
 
 describe("formatServiceMethodData should", () => {
   test("return formatted data", () => {
@@ -14,8 +14,8 @@ describe("formatServiceMethodData should", () => {
     };
 
     const serviceData = [
-      { field: "Значение", field2: "Значение 2" },
-      { field: "Значение", field2: "Значение 2" },
+      { id: "Значеине", field: "Значение", field2: "Значение 2" },
+      { id: "Значеине2", field: "Значение", field2: "Значение 2" },
     ];
 
     const formattedData = formatServiceMethodData({
@@ -23,14 +23,15 @@ describe("formatServiceMethodData should", () => {
       data: serviceData,
     });
 
-    expect(formattedData).toBe(`
+    expect(formattedData).toBe(
+      `
 ${testService.title}
-${methodDataDivider}
 Поле: Значение
 Поле 2: Значение 2
-${methodDataDivider}
+
 Поле: Значение
 Поле 2: Значение 2
-`);
+`.trim()
+    );
   });
 });

@@ -13,7 +13,7 @@ const info: Service["info"] = {
         { title: "Название вакансии", name: "name" },
         { title: "Ссылка", name: "url" },
       ],
-      recheckTime: 30000,
+      recheckTime: 86400000,
       fn: getVacancies,
     },
   ],

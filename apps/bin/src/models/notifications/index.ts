@@ -1,1 +1,1 @@
-export {} from "./lib";
+export { formatServiceMethodData } from "./lib";

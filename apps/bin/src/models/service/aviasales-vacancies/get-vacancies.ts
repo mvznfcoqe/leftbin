@@ -1,11 +1,12 @@
 import { db, schema } from "@/schema";
 import { eq } from "drizzle-orm";
 import { info } from "./info";
-import type { ServiceMethodFn } from "@/models/lib/types";
+import type { ServiceMethodFn } from "../lib";
 
 type Vacancy = {
-  name: string | null;
-  url: string | null;
+  id: string;
+  name: string;
+  url: string;
 };
 
 type Params = {
@@ -14,7 +15,7 @@ type Params = {
 
 export const getVacanciesMethodName = "get-vacancies";
 
-const getVacancies: ServiceMethodFn<Params, Vacancy> = async ({
+const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
   context,
   params,
 }) => {
@@ -26,6 +27,12 @@ const getVacancies: ServiceMethodFn<Params, Vacancy> = async ({
   const service = services[0];
 
   if (!service) return;
+
+  const method = await db.query.serviceMethod.findFirst({
+    where: eq(schema.serviceMethod.name, getVacanciesMethodName),
+  });
+
+  if (!method) return;
 
   const vacancies: Vacancy[] = [];
 
@@ -44,7 +51,7 @@ const getVacancies: ServiceMethodFn<Params, Vacancy> = async ({
       .textContent();
     const url = await locators[index].getAttribute("href");
 
-    const isDataInvalid = !name || !url
+    const isDataInvalid = !name || !url;
     if (isDataInvalid) {
       break;
     }
@@ -54,16 +61,23 @@ const getVacancies: ServiceMethodFn<Params, Vacancy> = async ({
 
     const base = new URL(service.baseUrl).origin;
 
-    vacancies.push({ name, url: `${base}${url}` });
+    const vacancyUrl = `${base}${url}`;
+
+    vacancies.push({ id: vacancyUrl, name, url: vacancyUrl });
   }
 
-  await db.insert(schema.serviceData).values({
-    data: vacancies,
-    serviceId: service.id,
-    method: "get-vacancies",
-  });
+  const inserted = await db
+    .insert(schema.serviceData)
+    .values({
+      data: vacancies,
+      serviceId: service.id,
+      methodId: method.id,
+    })
+    .returning();
 
-  return { data: vacancies };
+  const insertedVacancies = inserted[0];
+
+  return { data: vacancies, insertedId: insertedVacancies.id };
 };
 
 export { getVacancies };

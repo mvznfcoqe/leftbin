@@ -1,19 +1,29 @@
-import type { schema } from "@/schema";
+import { db, schema } from "@/schema";
 import { env } from "@/env";
 import type { BrowserContext } from "playwright";
+import { and, eq } from "drizzle-orm";
+import { services } from ".";
 
 export type ServiceField = {
   title: string;
   name: string;
 };
 
-export type ServiceMethodData = Record<string, unknown>[];
+export type ServiceMethodData = {
+  id: string | number;
+  [x: string]: string | number;
+}[];
 
-export type ServiceResponse = { data: ServiceMethodData } | undefined;
-export type ServiceMethodFn<P = Record<string, unknown>> = (params: {
+export type ServiceResponse<D = ServiceMethodData> =
+  | { data: D; insertedId: number }
+  | undefined;
+export type ServiceMethodFn<
+  P = Record<string, unknown>,
+  D = ServiceMethodData
+> = (params: {
   context: BrowserContext;
   params?: P;
-}) => Promise<ServiceResponse>;
+}) => Promise<ServiceResponse<D>>;
 
 export type ServiceMethod = {
   name: string;
@@ -37,7 +47,7 @@ export type Service = {
 const getMethodRecheckTime = ({
   recheckTime,
 }: {
-  recheckTime?: typeof schema.serviceMethod.$inferSelect.recheckTime;
+  recheckTime?: typeof schema.userServiceMethod.$inferSelect.recheckTime;
 }) => {
   const time = recheckTime || env.BASE_RECHECK_TIME;
 
@@ -50,4 +60,68 @@ const getMethodRecheckTime = ({
   return time;
 };
 
-export { getMethodRecheckTime };
+const getMethodNewData = ({
+  previousData,
+  data,
+}: {
+  previousData: ServiceMethodData;
+  data: ServiceMethodData;
+}) => {
+  const newData = data.filter(({ id }) => {
+    return !previousData.some(
+      (previous) => previous.id.toString() === id.toString()
+    );
+  });
+
+  return newData;
+};
+
+const getMethodPreviousDataByLastId = async ({
+  lastInsertedId,
+  serviceId,
+  methodId,
+}: {
+  lastInsertedId: number;
+  serviceId: typeof schema.service.$inferSelect.id;
+  methodId: typeof schema.serviceData.$inferSelect.methodId;
+}) => {
+  const previousDataId = lastInsertedId - 1;
+  const previousData = await db.query.serviceData.findFirst({
+    where: and(
+      eq(schema.serviceData.id, previousDataId),
+      eq(schema.serviceData.serviceId, serviceId),
+      eq(schema.serviceData.methodId, methodId)
+    ),
+  });
+
+  return previousData?.data || [];
+};
+
+const getMethodFnByName = async ({
+  methodName,
+  serviceName,
+}: {
+  methodName: typeof schema.serviceMethod.$inferSelect.name;
+  serviceName: typeof schema.service.$inferSelect.name;
+}) => {
+  const service = services.find((service) => service.info.name === serviceName);
+
+  if (!service) {
+    return;
+  }
+
+  const methodFn = service.methods[methodName];
+
+  if (!methodFn) {
+    return;
+  }
+
+  return methodFn;
+};
+
+export {
+  getMethodRecheckTime,
+  getMethodNewData,
+  getMethodPreviousDataByLastId,
+  getMethodFnByName,
+};
