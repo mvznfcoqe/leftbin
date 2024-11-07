@@ -1,3 +1,4 @@
+import { getCurrentUser } from "@/models/user";
 import { db, schema } from "@/schema";
 import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
@@ -13,10 +14,16 @@ const setupTelegramDTO = z.object({
 telegram.post("/setup", zValidator("json", setupTelegramDTO), async (ctx) => {
   const { telegramId } = ctx.req.valid("json");
 
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return ctx.json({}, 403);
+  }
+
   await db
     .update(schema.user)
     .set({ telegramId: telegramId.toString() })
-    .where(eq(schema.user.name, "admin"))
+    .where(eq(schema.user.name, user?.name))
     .returning();
 
   return ctx.json({}, 201);

@@ -1,8 +1,10 @@
+import { and, eq } from "drizzle-orm";
 import { logger } from ".";
 import { services } from "./models/service";
 import { getMethodRecheckTime } from "./models/service/lib";
 import { db, schema } from "./schema";
 import { parserQueue, parserWorkerName } from "./workers/parser";
+import { getCurrentUser } from "./models/user";
 
 const initBin = async (bin: typeof schema.bin.$inferInsert) => {
   await db.insert(schema.bin).values(bin);
@@ -18,30 +20,67 @@ const initServices = async () => {
 };
 
 const startRepeatableJobs = async () => {
-  for (const service of services) {
-    for (const method of service.info.methods) {
-      const recheckTime = getMethodRecheckTime({
-        recheckTime: method.recheckTime,
-      });
+  await parserQueue.drain();
 
-      await parserQueue.add(
-        parserWorkerName,
-        { methodName: method.name, serviceName: service.info.name },
-        {
-          repeat: {
-            every: recheckTime,
-          },
-          removeOnFail: true,
-        }
-      );
+  const user = await getCurrentUser();
 
-      logger.debug({
-        service: service.info.name,
-        method: method.name,
-        status: "Initialized repeatable job",
-        recheckTime,
-      });
+  if (!user) {
+    return;
+  }
+
+  const activeMethods = await db
+    .select({
+      service: schema.service,
+      userServiceMethod: schema.userServiceMethod,
+      serviceMethod: schema.serviceMethod,
+    })
+    .from(schema.userServiceMethod)
+    .where(
+      and(
+        eq(schema.userServiceMethod.active, true),
+        eq(schema.userServiceMethod.userId, user.id)
+      )
+    )
+    .leftJoin(
+      schema.service,
+      eq(schema.service.id, schema.userServiceMethod.serviceId)
+    )
+    .leftJoin(
+      schema.serviceMethod,
+      and(
+        eq(schema.serviceMethod.id, schema.userServiceMethod.methodId),
+        eq(schema.serviceMethod.serviceId, schema.userServiceMethod.serviceId)
+      )
+    );
+
+  for (const activeMethod of activeMethods) {
+    const { service, serviceMethod, userServiceMethod } = activeMethod;
+
+    if (!service || !serviceMethod) {
+      return;
     }
+
+    const recheckTime = getMethodRecheckTime({
+      recheckTime: userServiceMethod.recheckTime,
+    });
+
+    await parserQueue.add(
+      parserWorkerName,
+      { methodName: serviceMethod.name, serviceName: service.name },
+      {
+        repeat: {
+          every: recheckTime,
+        },
+        removeOnFail: true,
+      }
+    );
+
+    logger.debug({
+      service: service.name,
+      method: serviceMethod.name,
+      status: "Initialized repeatable job",
+      recheckTime,
+    });
   }
 };
 

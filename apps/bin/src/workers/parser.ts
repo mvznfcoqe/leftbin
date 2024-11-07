@@ -1,14 +1,18 @@
-import { services } from "@/models/service";
 import { Job, Queue, Worker } from "bullmq";
 import { firefox } from "playwright";
 import { logger } from "..";
-
 import { connection } from "./connection";
 import { bot } from "@/bot";
 import { db, schema } from "@/schema";
-import { eq } from "drizzle-orm";
-import { formatServiceMethodData } from "@/models/notifications/lib";
-import type { ServiceResponse } from "@/models/service/lib";
+import { and, eq } from "drizzle-orm";
+import { formatServiceMethodData } from "@/models/notifications";
+import {
+  getMethodNewData,
+  type ServiceResponse,
+  getMethodFnByName,
+  getMethodPreviousDataByLastId,
+} from "@/models/service";
+import { getCurrentUser } from "@/models/user";
 
 export const parserWorkerName = "parserQueue";
 
@@ -22,28 +26,79 @@ export const parserQueue = new Queue<ServiceParserJobData>(parserWorkerName, {
   connection,
 });
 
+const getMethodData = async ({
+  serviceId,
+  methodId,
+  parsed,
+  notifyAbout,
+}: {
+  serviceId: typeof schema.service.$inferSelect.id;
+  methodId: typeof schema.serviceMethod.$inferSelect.id;
+  notifyAbout: typeof schema.userServiceMethod.$inferSelect.notifyAbout;
+  parsed: ServiceResponse;
+}) => {
+  if (!parsed) {
+    return [];
+  }
+
+  if (notifyAbout === "all") {
+    return parsed.data;
+  }
+
+  const previousData = await getMethodPreviousDataByLastId({
+    serviceId: serviceId,
+    methodId: methodId,
+    lastInsertedId: parsed.insertedId,
+  });
+
+  const newData = getMethodNewData({
+    data: parsed.data,
+    previousData: previousData,
+  });
+
+  return newData;
+};
+
 export const parserWorker = new Worker(
   parserWorkerName,
   async ({ data }: Job<ServiceParserJobData, ServiceResponse>) => {
     const { methodName, query, serviceName } = data;
 
-    const service = services.find(
-      (service) => service.info.name === serviceName
-    );
+    const methodData = await db
+      .selectDistinctOn([schema.serviceMethod.id], {
+        service: schema.service,
+        serviceMethod: schema.serviceMethod,
+        userServiceMethod: schema.userServiceMethod,
+      })
+      .from(schema.service)
+      .where(eq(schema.service.name, serviceName))
+      .leftJoin(
+        schema.serviceMethod,
+        and(
+          eq(schema.serviceMethod.serviceId, schema.service.id),
+          eq(schema.serviceMethod.name, methodName)
+        )
+      )
+      .leftJoin(
+        schema.userServiceMethod,
+        and(
+          eq(schema.userServiceMethod.methodId, schema.serviceMethod.id),
+          eq(schema.userServiceMethod.serviceId, schema.service.id)
+        )
+      )
+      .then((methods) => {
+        return methods[0];
+      });
 
-    if (!service) {
-      return;
+    if (!methodData.serviceMethod || !methodData.userServiceMethod) {
+      throw new Error("Failed to get methodData");
     }
 
-    const methodInfo = service.info.methods.find(
-      (method) => method.name === methodName
-    );
+    const methodFn = await getMethodFnByName({ serviceName, methodName });
 
-    if (!methodInfo) {
-      return;
+    if (!methodFn) {
+      throw new Error(`Failed to find fn for ${serviceName}, ${methodName}`);
     }
-
-    const methodFn = service.methods[methodName];
 
     const browser = await firefox.launch();
     const context = await browser.newContext();
@@ -51,28 +106,54 @@ export const parserWorker = new Worker(
     const parsed = await methodFn({ context, params: query });
 
     if (!parsed?.data) {
-      return;
+      throw new Error(`Failed to parse data for ${serviceName}, ${methodName}`);
     }
 
-    const user = await db.query.user.findFirst({
-      where: eq(schema.user.name, "admin"),
-    });
+    const user = await getCurrentUser();
 
     if (!user || !user.telegramId) {
       return parsed;
     }
 
+    const methodFields = await db.query.serviceMethodField
+      .findMany({
+        where: and(
+          eq(schema.serviceMethodField.serviceId, methodData.service.id),
+          eq(schema.serviceMethodField.methodId, methodData.serviceMethod.id)
+        ),
+      })
+      .then((fields) => {
+        return fields.map((field) => {
+          return { name: field.name, title: field.title };
+        });
+      });
+
+    const serviceDataForNotifications = await getMethodData({
+      methodId: methodData.serviceMethod.id,
+      serviceId: methodData.service.id,
+      notifyAbout: methodData.userServiceMethod.notifyAbout,
+      parsed,
+    });
+
+    if (!serviceDataForNotifications || !serviceDataForNotifications.length) {
+      return;
+    }
+
     const formattedData = formatServiceMethodData({
-      data: parsed?.data,
-      method: methodInfo,
+      data: serviceDataForNotifications,
+      method: {
+        title: methodData.serviceMethod.title,
+        name: methodData.serviceMethod.name,
+        fields: methodFields,
+      },
     });
 
     await bot.api.sendMessage(
       user.telegramId,
       `
-Сервис: ${service.info.title}
+Сервис: ${methodData.service.title}
 ${formattedData}
-      `
+`
     );
 
     return parsed;
@@ -86,11 +167,11 @@ ${formattedData}
 
 parserWorker.on("completed", (job) => {
   if (!job.returnvalue) {
-    logger.error({
+    logger.debug({
       jobId: job.id,
       service: job.data.serviceName,
       method: job.data.methodName,
-      error: `Parser returned undefined`,
+      error: `No data`,
     });
 
     return;
@@ -101,5 +182,18 @@ parserWorker.on("completed", (job) => {
     service: job.data.serviceName,
     method: job.data.methodName,
     parsedItemsCount: job.returnvalue.data.length,
+  });
+});
+
+parserWorker.on("failed", (job) => {
+  if (!job) {
+    return;
+  }
+
+  logger.debug({
+    jobId: job.id,
+    service: job.data.serviceName,
+    method: job.data.methodName,
+    status: "Failed job",
   });
 });

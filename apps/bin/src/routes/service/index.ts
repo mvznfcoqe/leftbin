@@ -4,10 +4,10 @@ import { z } from "zod";
 import { db, schema } from "../../schema";
 import { eq } from "drizzle-orm";
 import { getActiveServices } from "../../models/services";
-import { services } from "@/models/service";
 import { parserQueue, parserWorkerName } from "@/workers/parser";
 import { bearerAuth } from "hono/bearer-auth";
 import { env } from "@/env";
+import { getMethodFnByName } from "@/models/service";
 
 const service = new Hono();
 service.use("/*", bearerAuth({ token: env.AUTH_TOKEN }));
@@ -70,16 +70,10 @@ service.get(
     const name = ctx.req.param("name");
     const method = ctx.req.param("method");
 
-    const service = services.find((service) => service.info.name === name);
-
-    if (!service) {
-      return ctx.json({}, { status: 404 });
-    }
-
-    const methodFn = service.methods[method];
+    const methodFn = await getMethodFnByName({ serviceName: name, methodName: method });
 
     if (!methodFn) {
-      return ctx.json({}, { status: 404 });
+      return ctx.json({}, { status: 404 })
     }
 
     await parserQueue.add(parserWorkerName, {

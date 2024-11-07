@@ -1,7 +1,6 @@
 import { init } from "./init";
 import { info } from "./info";
-import type { Service } from "../lib";
-import type { ServiceMethodFn } from "@/models/lib/types";
+import type { Service, ServiceMethodFn } from "../lib";
 
 const aviasalesVacanciesService: Service = {
   init,

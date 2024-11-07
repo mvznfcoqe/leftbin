@@ -9,7 +9,6 @@ import { eq } from "drizzle-orm";
 import { check } from "./routes/check";
 import { service } from "./routes/service";
 
-import { bearerAuth } from "hono/bearer-auth";
 import { notifications } from "./routes/notifications";
 
 export const logger = pino({ level: "debug" });
