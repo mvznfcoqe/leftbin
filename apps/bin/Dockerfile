@@ -8,5 +8,5 @@ RUN apt install unzip
 RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr bash
 
 RUN bun install
-CMD ["bun", "dev"]
+CMD ["bun", "src/index.ts"]
 EXPOSE 3001

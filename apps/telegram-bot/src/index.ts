@@ -34,3 +34,5 @@ bot.catch((err) => {
   console.error(`Error while handling update ${err.ctx.update.update_id}:`);
   console.error(err.error);
 });
+
+console.log("Bot started");

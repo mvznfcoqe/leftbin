@@ -1,0 +1,60 @@
+services:
+  redis:
+    image: redis/redis-stack:latest
+    ports:
+      - 6379:6379
+      - 8001:8001
+
+  bin-db:
+    image: postgres:bookworm
+    ports:
+      - 5432:5432
+    volumes:
+      - bin-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: bin
+    restart: unless-stopped
+
+  bin:
+    build: ./apps/bin
+    ports:
+      - 9001:9001
+    volumes:
+      - bin:/app
+    depends_on:
+      - redis
+      - bin-db
+    environment:
+      AUTH_TOKEN: ${AUTH_TOKEN}
+      BASE_RECHECK_TIME: ${BIN_BASE_RECHECK_TIME}
+      DATABASE_URL: ${BIN_DATABASE_URL}
+      BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+
+  telegram-bot-db:
+    image: postgres:bookworm
+    ports:
+      - 5433:5433
+    volumes:
+      - telegram-bot-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: telegram
+    restart: unless-stopped
+
+  telegram-bot:
+    build: ./apps/telegram-bot
+    volumes:
+      - telegram-bot:/app
+    depends_on:
+      - telegram-bot-db
+    environment:
+      BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+
+volumes:
+  bin:
+  telegram-bot:
+  bin-db:
+  telegram-bot-db:
