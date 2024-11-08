@@ -62,8 +62,9 @@ const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
     const base = new URL(service.baseUrl).origin;
 
     const vacancyUrl = `${base}${url}`;
+    const vacancyId = url.split("/").at(-1);
 
-    vacancies.push({ id: vacancyUrl, name, url: vacancyUrl });
+    vacancies.push({ id: vacancyId || name, name, url: vacancyUrl });
   }
 
   const inserted = await db

@@ -1,3 +1,4 @@
+import { defaultNotifyAbout } from "@/schema/schema";
 import { db, schema } from "../../schema";
 import type { Service } from "../service/lib";
 import { getCurrentUser } from "../user";
@@ -46,7 +47,7 @@ export const addService = async ({
     await db.insert(schema.userServiceMethod).values({
       serviceId: insertedService.id,
       methodId: insertedMethod.id,
-      notifyAbout: "new",
+      notifyAbout: defaultNotifyAbout,
       userId: user.id,
       recheckTime: method.recheckTime,
     });
