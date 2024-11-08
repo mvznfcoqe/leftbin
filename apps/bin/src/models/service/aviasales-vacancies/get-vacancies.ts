@@ -37,7 +37,7 @@ const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
   const vacancies: Vacancy[] = [];
 
   const page = await context.newPage();
-  await page.goto(service.baseUrl);
+  await page.goto(service.baseUrl, { timeout: 120000 });
   await page.waitForTimeout(1000);
 
   const vacanciesContainer = page.locator(".vacancies");

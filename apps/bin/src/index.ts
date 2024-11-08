@@ -10,6 +10,8 @@ import { check } from "./routes/check";
 import { service } from "./routes/service";
 
 import { notifications } from "./routes/notifications";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
+import { serve } from "@hono/node-server";
 
 export const logger = pino({ level: "debug" });
 
@@ -19,9 +21,15 @@ if (!env.AUTH_TOKEN) {
 
 const app = new Hono({}).basePath("/api");
 
+app.route("/", check);
 app.route("/check", check);
 app.route("/service", service);
 app.route("/notifications", notifications);
+
+if (env.MIGRATE) {
+  logger.info("Database migration started");
+  void (await migrate(db, { migrationsFolder: "./drizzle" }));
+}
 
 try {
   const bin = await db
@@ -50,7 +58,4 @@ logger.info(
   `
 );
 
-export default {
-  port: env.PORT,
-  fetch: app.fetch,
-};
+serve({ port: env.PORT, hostname: env.HOSTNAME, fetch: app.fetch });
