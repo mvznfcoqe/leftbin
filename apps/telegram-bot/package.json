@@ -3,10 +3,10 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "start:dev": "node --import=tsx --watch ./src/index.ts",
-    "start:prod": "node --import=tsx ./src/index.ts",
-    "start:test": "node --import=tsx --watch --test **/*.test.ts",
-    "test": "node --import=tsx --test **/*.test.ts"
+    "start:dev": "node --env-file=.env --import=tsx --watch ./src/index.ts",
+    "start:prod": "node --env-file=.env --import=tsx ./src/index.ts",
+    "start:test": "node --env-file=.env --import=tsx --watch --test **/*.test.ts",
+    "test": "node --env-file=.env --import=tsx --test **/*.test.ts"
   },
   "devDependencies": {
     "@types/pg": "^8.11.10",

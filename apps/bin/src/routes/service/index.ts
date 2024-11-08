@@ -1,13 +1,13 @@
 import { zValidator } from "@hono/zod-validator";
+import { bearerAuth } from "hono/bearer-auth";
 import { Hono } from "hono";
 import { z } from "zod";
-import { db, schema } from "../../schema";
 import { eq } from "drizzle-orm";
-import { getActiveServices } from "../../models/services";
+import { db, schema } from "../../schema";
 import { parserQueue, parserWorkerName } from "@/workers/parser";
-import { bearerAuth } from "hono/bearer-auth";
 import { env } from "@/env";
 import { getMethodFnByName } from "@/models/service";
+import { getActiveMethods } from "@/models/services";
 
 const service = new Hono();
 service.use("/*", bearerAuth({ token: env.AUTH_TOKEN }));
@@ -22,7 +22,7 @@ const addCookiesDTO = z.object({
       expires: z.coerce.number(),
       httpOnly: z.boolean(),
       secure: z.boolean(),
-    }),
+    })
   ),
 });
 
@@ -40,7 +40,7 @@ service.post(
     await db.insert(schema.cookie).values(cookies);
 
     return ctx.json({}, 201);
-  },
+  }
 );
 
 service.delete("/:serviceId/cookies", async (ctx) => {
@@ -53,10 +53,10 @@ service.delete("/:serviceId/cookies", async (ctx) => {
   return ctx.json({}, 200);
 });
 
-service.get("/active-services", async (ctx) => {
-  const activeServices = await getActiveServices();
+service.get("/active-methods", async (ctx) => {
+  const activeMethods = await getActiveMethods();
 
-  return ctx.json(activeServices);
+  return ctx.json(activeMethods);
 });
 
 const serviceMethodParamsDTO = z.record(z.string(), z.string());
@@ -86,7 +86,7 @@ service.get(
     });
 
     return ctx.json({}, { status: 201 });
-  },
+  }
 );
 
 export { service };

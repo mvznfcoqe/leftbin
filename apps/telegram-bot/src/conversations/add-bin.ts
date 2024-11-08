@@ -32,7 +32,6 @@ const checkBinStatus = async ({
       return true;
     }
   } catch (e) {
-    console.log(e);
     if (e instanceof FetchError) {
       if (e.status === 401) {
         ctx.reply(ctx.t("bin-auth-failed"));

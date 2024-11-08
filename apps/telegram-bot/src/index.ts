@@ -31,7 +31,7 @@ bot.use(
     initial: () => {
       return getInitialSession();
     },
-  }),
+  })
 );
 bot.use(conversations<MyContext>());
 
@@ -41,8 +41,8 @@ bot.use(handlers);
 bot.start();
 
 bot.catch((err) => {
-  console.error(`Error while handling update ${err.ctx.update.update_id}:`);
-  console.error(err.error);
+  logger.error(`Error while handling update ${err.ctx.update.update_id}:`);
+  logger.error(err.error);
 });
 
-console.log("Bot started");
+logger.info("Bot started");

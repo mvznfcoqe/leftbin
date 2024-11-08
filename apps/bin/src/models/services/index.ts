@@ -1,1 +1,1 @@
-export { getActiveServices } from "./get";
+export { getActiveMethods } from "./get";
