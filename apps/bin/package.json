@@ -6,8 +6,8 @@
   "scripts": {
     "start:dev": "node --import=tsx --watch ./src/index.ts",
     "start:prod": "node --import=tsx ./src/index.ts",
-    "test": "node --import=tsx --test **/*.test.ts",
-    "start:test": "npm run test --watch"
+    "start:test": "node --import=tsx --watch --test **/*.test.ts",
+    "test": "node --import=tsx --test **/*.test.ts"
   },
   "devDependencies": {
     "drizzle-kit": "^0.26.2"
