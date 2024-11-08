@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start:dev": "node --env-file=.env --import=tsx --watch ./src/index.ts",
-    "start:prod": "node --env-file=.env --import=tsx ./src/index.ts",
-    "start:test": "node --env-file=.env --import=tsx --watch --test **/*.test.ts",
-    "test": "node --env-file=.env --import=tsx --test **/*.test.ts"
+    "start:dev": "node --env-file-if-exists=.env --import=tsx --watch ./src/index.ts",
+    "start:prod": "node --env-file-if-exists=.env --import=tsx ./src/index.ts",
+    "start:test": "node --env-file-if-exists=.env --import=tsx --watch --test **/*.test.ts",
+    "test": "node --env-file-if-exists=.env --import=tsx --test **/*.test.ts"
   },
   "devDependencies": {
     "drizzle-kit": "^0.26.2"
