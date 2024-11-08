@@ -43,9 +43,7 @@ try {
     logger.info(`Bin initialized with name "${env.NAME}"`);
   }
 
-  // if (env.NODE_ENV !== "development") {
   await startRepeatableJobs();
-  // }
 } catch (e) {
   logger.error(e);
 }
@@ -55,7 +53,7 @@ logger.info(
     Bin instance "${env.NAME}" started on http://localhost:${env.PORT}. 
     Link of your Bin for Telegram bot in local network: "http://127.0.0.1:${env.PORT}/api?token=${env.AUTH_TOKEN}".
     Replace 127.0.0.1:${env.PORT} with your domain name.
-  `
+  `,
 );
 
 serve({ port: env.PORT, hostname: env.HOSTNAME, fetch: app.fetch });

@@ -19,7 +19,7 @@ export type ServiceResponse<D = ServiceMethodData> =
   | undefined;
 export type ServiceMethodFn<
   P = Record<string, unknown>,
-  D = ServiceMethodData
+  D = ServiceMethodData,
 > = (params: {
   context: BrowserContext;
   params?: P;
@@ -69,7 +69,7 @@ const getMethodNewData = ({
 }) => {
   const newData = data.filter(({ id }) => {
     return !previousData.some(
-      (previous) => previous.id.toString() === id.toString()
+      (previous) => previous.id.toString() === id.toString(),
     );
   });
 
@@ -90,7 +90,7 @@ const getMethodPreviousDataByLastId = async ({
     where: and(
       eq(schema.serviceData.id, previousDataId),
       eq(schema.serviceData.serviceId, serviceId),
-      eq(schema.serviceData.methodId, methodId)
+      eq(schema.serviceData.methodId, methodId),
     ),
   });
 

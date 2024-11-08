@@ -10,11 +10,11 @@ const connectHandler = new Composer<MyContext>();
 connectHandler
   .filter(
     (
-      ctx
+      ctx,
     ): ctx is MyContext & {
       chat: Chat.PrivateChat;
       from: object;
-    } => ctx.chat?.type === "private"
+    } => ctx.chat?.type === "private",
   )
   .command("start", async (ctx) => {
     const user = await getUserByContext({ ctx });
@@ -22,10 +22,7 @@ connectHandler
     if (!user) {
       const telegramId = ctx.from.id.toString();
 
-      await db
-        .insert(schema.user)
-        .values({ telegramId: telegramId })
-        .onConflictDoNothing();
+      await db.insert(schema.user).values({ telegramId }).onConflictDoNothing();
     }
 
     await ctx.conversation.enter(conversationNames.addBin);

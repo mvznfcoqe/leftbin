@@ -1,4 +1,4 @@
-import { FetchError, ofetch } from "ofetch";
+import { ofetch } from "ofetch";
 
 type BaseBinParams = {
   baseUrl: string;
@@ -10,7 +10,6 @@ const getBinBaseHeaders = ({ token }: Pick<BaseBinParams, "token">) => {
 };
 
 type CheckResponse = {
-  version: string;
   ok: boolean;
 };
 
@@ -30,7 +29,7 @@ const setup = async ({
     baseURL: baseUrl,
     headers: getBinBaseHeaders({ token }),
     method: "POST",
-    body: { telegramId: telegramId },
+    body: { telegramId },
   });
 };
 

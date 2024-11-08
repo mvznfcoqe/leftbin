@@ -62,7 +62,7 @@ const serviceMethod = pgTable("service_method", {
     .$onUpdate(() => new Date()),
 });
 
-const defaultNotifyAbout: "all" | "new" = "new";
+export const defaultNotifyAbout: "all" | "new" = "new";
 
 const userServiceMethod = pgTable("user_service_method", {
   id: serial().primaryKey(),

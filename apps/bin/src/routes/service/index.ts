@@ -22,7 +22,7 @@ const addCookiesDTO = z.object({
       expires: z.coerce.number(),
       httpOnly: z.boolean(),
       secure: z.boolean(),
-    })
+    }),
   ),
 });
 
@@ -40,7 +40,7 @@ service.post(
     await db.insert(schema.cookie).values(cookies);
 
     return ctx.json({}, 201);
-  }
+  },
 );
 
 service.delete("/:serviceId/cookies", async (ctx) => {
@@ -50,7 +50,7 @@ service.delete("/:serviceId/cookies", async (ctx) => {
     .delete(schema.cookie)
     .where(eq(schema.cookie.serviceId, Number(serviceId)));
 
-  return ctx.json({});
+  return ctx.json({}, 200);
 });
 
 service.get("/active-services", async (ctx) => {
@@ -70,20 +70,23 @@ service.get(
     const name = ctx.req.param("name");
     const method = ctx.req.param("method");
 
-    const methodFn = await getMethodFnByName({ serviceName: name, methodName: method });
+    const methodFn = await getMethodFnByName({
+      serviceName: name,
+      methodName: method,
+    });
 
     if (!methodFn) {
-      return ctx.json({}, { status: 404 })
+      return ctx.json({}, { status: 404 });
     }
 
     await parserQueue.add(parserWorkerName, {
       methodName: method,
-      query: query,
+      query,
       serviceName: name,
     });
 
     return ctx.json({}, { status: 201 });
-  }
+  },
 );
 
 export { service };

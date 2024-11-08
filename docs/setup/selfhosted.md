@@ -10,9 +10,11 @@ git clone git@github.com:mvznfcoqe/leftbin.git ~/.leftbin
 ```sh
 cp .env-compose.sample .env-compose
 ```
+
 And change sample values to actual
 
 4. Run Leftbin using [Docker Compose](https://docs.docker.com/compose/)
+
 ```
 docker compose --env-file .env-compose up -d
 ```

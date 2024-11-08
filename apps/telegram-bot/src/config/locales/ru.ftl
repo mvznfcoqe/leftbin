@@ -1,1 +1,9 @@
-requestBinData = Сенд ми ё бин урл
+request-bin-data = Отправьте свою ссылку на Bin, включив токен в строку запроса.
+bin-url-invalid = Предоставленная ссылка на Bin недействительна; пожалуйста, проверьте и попробуйте снова.
+bin-data-invalid = Предоставленная ссылка на Bin недействительна; пожалуйста, проверьте и попробуйте снова. Вы можете добавить Bin, используя команду /addbin.
+trying-access-to-bin = Попытка проверить статус Bin...
+bin-status-active = Bin работает.
+bin-successfully-added = Bin успешно добавлен.
+bin-auth-failed = Не удалось авторизоваться в Bin.
+bin-check-status-failed = Не удалось проверить статус Bin.
+bin-already-added = Bin с этим URL уже добавлен.

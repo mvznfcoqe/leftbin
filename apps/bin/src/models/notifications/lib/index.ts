@@ -7,7 +7,7 @@ const formatServiceMethodData = ({
   method: Pick<ServiceMethod, "title" | "name" | "fields">;
   data: ServiceMethodData;
 }) => {
-  let formattedFields = data.map((fields) => {
+  const formattedFields = data.map((fields) => {
     const fieldsWithTitles = Object.entries(fields)
       .map(([name, value]) => {
         const fieldName = method.fields.find((field) => {
@@ -15,7 +15,7 @@ const formatServiceMethodData = ({
         });
 
         if (!fieldName) {
-          return;
+          return null;
         }
 
         return `${fieldName.title}: ${value}`;
@@ -26,7 +26,7 @@ const formatServiceMethodData = ({
   });
 
   return `
-${method.title}\n
+${method.title}
 ${formattedFields.join("\n\n")}
 `.trim();
 };
