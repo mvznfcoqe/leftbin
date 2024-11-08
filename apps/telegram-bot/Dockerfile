@@ -1,8 +1,9 @@
-FROM oven/bun:1
+FROM node:alpine
 
 WORKDIR /app
 COPY . .
 
-ENV NODE_ENV=production
-RUN bun install
-ENTRYPOINT [ "bun", "run", "src/index.ts" ]
+RUN npm install --save-dev tsx 
+
+RUN npm install
+CMD ["npm", "run","start:prod"]

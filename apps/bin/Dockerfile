@@ -3,10 +3,10 @@ FROM mcr.microsoft.com/playwright:v1.48.1-noble
 WORKDIR /app
 COPY . .
 
-RUN apt update
-RUN apt install unzip
-RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr bash
+RUN npm install --save-dev tsx 
 
-RUN bun install
-CMD ["bun", "src/index.ts"]
-EXPOSE 3001
+RUN npm install
+ENV PORT 9001
+EXPOSE 9001
+
+CMD ["npm", "run", "start:prod"]

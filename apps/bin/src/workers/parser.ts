@@ -171,7 +171,7 @@ parserWorker.on("completed", (job) => {
       jobId: job.id,
       service: job.data.serviceName,
       method: job.data.methodName,
-      error: `No data`,
+      parsedItemsCount: 0,
     });
 
     return;
@@ -185,7 +185,7 @@ parserWorker.on("completed", (job) => {
   });
 });
 
-parserWorker.on("failed", (job) => {
+parserWorker.on("failed", (job, err) => {
   if (!job) {
     return;
   }
@@ -195,5 +195,6 @@ parserWorker.on("failed", (job) => {
     service: job.data.serviceName,
     method: job.data.methodName,
     status: "Failed job",
+    error: err.message,
   });
 });
