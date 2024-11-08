@@ -1,9 +1,18 @@
 import type { ServiceMethod } from "@/models/service/lib";
-import { describe, expect, test } from "bun:test";
+import { describe, it } from "node:test";
+import { equal } from "node:assert";
 import { formatServiceMethodData } from ".";
 
+const formattedServiceData = `
+Метод
+Поле: Значение
+Поле 2: Значение 2
+
+Поле: Значение
+Поле 2: Значение 2`.trim();
+
 describe("formatServiceMethodData should", () => {
-  test("return formatted data", () => {
+  it("return formatted data", () => {
     const testService: Pick<ServiceMethod, "title" | "name" | "fields"> = {
       fields: [
         { name: "field", title: "Поле" },
@@ -23,15 +32,6 @@ describe("formatServiceMethodData should", () => {
       data: serviceData,
     });
 
-    expect(formattedData).toBe(
-      `
-${testService.title}
-Поле: Значение
-Поле 2: Значение 2
-
-Поле: Значение
-Поле 2: Значение 2
-`.trim()
-    );
+    equal(formattedData, formattedServiceData);
   });
 });
