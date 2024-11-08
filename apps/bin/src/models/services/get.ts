@@ -8,7 +8,7 @@ export const getActiveMethods = async () => {
     .where(eq(schema.userServiceMethod.active, true))
     .innerJoin(
       schema.serviceMethod,
-      eq(schema.userServiceMethod.methodId, schema.serviceMethod.id)
+      eq(schema.userServiceMethod.methodId, schema.serviceMethod.id),
     );
 
   return services.map(({ serviceMethod }) => {

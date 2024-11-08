@@ -22,7 +22,7 @@ const addCookiesDTO = z.object({
       expires: z.coerce.number(),
       httpOnly: z.boolean(),
       secure: z.boolean(),
-    })
+    }),
   ),
 });
 
@@ -40,7 +40,7 @@ service.post(
     await db.insert(schema.cookie).values(cookies);
 
     return ctx.json({}, 201);
-  }
+  },
 );
 
 service.delete("/:serviceId/cookies", async (ctx) => {
@@ -81,12 +81,12 @@ service.get(
 
     await parserQueue.add(parserWorkerName, {
       methodName: method,
-      query: query,
+      query,
       serviceName: name,
     });
 
     return ctx.json({}, { status: 201 });
-  }
+  },
 );
 
 export { service };

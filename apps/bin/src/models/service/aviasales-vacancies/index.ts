@@ -5,11 +5,14 @@ import type { Service, ServiceMethodFn } from "../lib";
 const aviasalesVacanciesService: Service = {
   init,
   info,
-  methods: info.methods.reduce((acc, method) => {
-    acc[method.name] = method.fn;
+  methods: info.methods.reduce(
+    (acc, method) => {
+      acc[method.name] = method.fn;
 
-    return acc;
-  }, {} as Record<string, ServiceMethodFn>),
+      return acc;
+    },
+    {} as Record<string, ServiceMethodFn>,
+  ),
 };
 
 export { aviasalesVacanciesService };

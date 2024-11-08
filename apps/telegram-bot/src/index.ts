@@ -31,7 +31,7 @@ bot.use(
     initial: () => {
       return getInitialSession();
     },
-  })
+  }),
 );
 bot.use(conversations<MyContext>());
 

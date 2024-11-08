@@ -120,12 +120,8 @@
           "name": "cookie_service_id_service_id_fk",
           "tableFrom": "cookie",
           "tableTo": "service",
-          "columnsFrom": [
-            "service_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -184,9 +180,7 @@
         "service_name_unique": {
           "name": "service_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "checkConstraints": {}
@@ -240,12 +234,8 @@
           "name": "service_data_service_id_service_id_fk",
           "tableFrom": "service_data",
           "tableTo": "service",
-          "columnsFrom": [
-            "service_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -253,12 +243,8 @@
           "name": "service_data_method_id_service_method_id_fk",
           "tableFrom": "service_data",
           "tableTo": "service_method",
-          "columnsFrom": [
-            "method_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["method_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -323,12 +309,8 @@
           "name": "service_method_service_id_service_id_fk",
           "tableFrom": "service_method",
           "tableTo": "service",
-          "columnsFrom": [
-            "service_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -392,12 +374,8 @@
           "name": "service_method_field_service_id_service_id_fk",
           "tableFrom": "service_method_field",
           "tableTo": "service",
-          "columnsFrom": [
-            "service_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -405,12 +383,8 @@
           "name": "service_method_field_method_id_service_method_id_fk",
           "tableFrom": "service_method_field",
           "tableTo": "service_method",
-          "columnsFrom": [
-            "method_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["method_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -463,16 +437,12 @@
         "user_telegramId_unique": {
           "name": "user_telegramId_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "telegramId"
-          ]
+          "columns": ["telegramId"]
         },
         "user_name_unique": {
           "name": "user_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "checkConstraints": {}
@@ -546,12 +516,8 @@
           "name": "user_service_method_service_id_service_id_fk",
           "tableFrom": "user_service_method",
           "tableTo": "service",
-          "columnsFrom": [
-            "service_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -559,12 +525,8 @@
           "name": "user_service_method_method_id_service_method_id_fk",
           "tableFrom": "user_service_method",
           "tableTo": "service_method",
-          "columnsFrom": [
-            "method_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["method_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -572,12 +534,8 @@
           "name": "user_service_method_user_id_user_id_fk",
           "tableFrom": "user_service_method",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

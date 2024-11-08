@@ -78,7 +78,7 @@ const userServiceMethod = pgTable("user_service_method", {
     .notNull(),
 
   notifyAbout: text("notify_about", { enum: ["all", "new"] }).default(
-    defaultNotifyAbout
+    defaultNotifyAbout,
   ),
   recheckTime: integer("recheck_time"),
   active: boolean("active").default(true),

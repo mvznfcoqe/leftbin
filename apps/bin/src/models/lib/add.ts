@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import { db, schema } from "../../schema";
 import type { Service } from "../service/lib";
 import { getCurrentUser } from "../user";

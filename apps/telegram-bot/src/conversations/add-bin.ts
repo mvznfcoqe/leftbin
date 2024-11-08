@@ -20,7 +20,7 @@ const checkBinStatus = async ({
   try {
     const response = await api.bin.check({ baseUrl: url, token });
 
-    if (!response.version) {
+    if (!response.ok) {
       ctx.reply(ctx.t("bin-check-status-failed"));
 
       return false;
@@ -121,8 +121,6 @@ const addBin = async (conversation: MyConversation, ctx: MyContext) => {
 
     ctx.reply(ctx.t("bin-successfully-added"));
   });
-
-  return;
 };
 
 export { addBin };

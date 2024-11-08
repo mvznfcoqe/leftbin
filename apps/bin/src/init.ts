@@ -38,19 +38,19 @@ const startRepeatableJobs = async () => {
     .where(
       and(
         eq(schema.userServiceMethod.active, true),
-        eq(schema.userServiceMethod.userId, user.id)
-      )
+        eq(schema.userServiceMethod.userId, user.id),
+      ),
     )
     .leftJoin(
       schema.service,
-      eq(schema.service.id, schema.userServiceMethod.serviceId)
+      eq(schema.service.id, schema.userServiceMethod.serviceId),
     )
     .leftJoin(
       schema.serviceMethod,
       and(
         eq(schema.serviceMethod.id, schema.userServiceMethod.methodId),
-        eq(schema.serviceMethod.serviceId, schema.userServiceMethod.serviceId)
-      )
+        eq(schema.serviceMethod.serviceId, schema.userServiceMethod.serviceId),
+      ),
     );
 
   for (const activeMethod of activeMethods) {
@@ -72,7 +72,7 @@ const startRepeatableJobs = async () => {
           every: recheckTime,
         },
         removeOnFail: true,
-      }
+      },
     );
 
     logger.debug({

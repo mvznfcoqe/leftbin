@@ -46,14 +46,14 @@ const getMethodData = async ({
   }
 
   const previousData = await getMethodPreviousDataByLastId({
-    serviceId: serviceId,
-    methodId: methodId,
+    serviceId,
+    methodId,
     lastInsertedId: parsed.insertedId,
   });
 
   const newData = getMethodNewData({
     data: parsed.data,
-    previousData: previousData,
+    previousData,
   });
 
   return newData;
@@ -76,15 +76,15 @@ export const parserWorker = new Worker(
         schema.serviceMethod,
         and(
           eq(schema.serviceMethod.serviceId, schema.service.id),
-          eq(schema.serviceMethod.name, methodName)
-        )
+          eq(schema.serviceMethod.name, methodName),
+        ),
       )
       .leftJoin(
         schema.userServiceMethod,
         and(
           eq(schema.userServiceMethod.methodId, schema.serviceMethod.id),
-          eq(schema.userServiceMethod.serviceId, schema.service.id)
-        )
+          eq(schema.userServiceMethod.serviceId, schema.service.id),
+        ),
       )
       .then((methods) => {
         return methods[0];
@@ -119,7 +119,7 @@ export const parserWorker = new Worker(
       .findMany({
         where: and(
           eq(schema.serviceMethodField.serviceId, methodData.service.id),
-          eq(schema.serviceMethodField.methodId, methodData.serviceMethod.id)
+          eq(schema.serviceMethodField.methodId, methodData.serviceMethod.id),
         ),
       })
       .then((fields) => {
@@ -153,7 +153,7 @@ export const parserWorker = new Worker(
       `
 Сервис: ${methodData.service.title}
 ${formattedData}
-`
+`,
     );
 
     return parsed;
@@ -162,7 +162,7 @@ ${formattedData}
     connection,
     concurrency: 5,
     removeOnFail: { count: 0 },
-  }
+  },
 );
 
 parserWorker.on("completed", (job) => {
