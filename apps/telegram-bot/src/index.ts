@@ -7,6 +7,16 @@ import { I18n } from "@grammyjs/i18n";
 import { getInitialSession } from "./lib/session";
 import { conversations } from "@grammyjs/conversations";
 import { conversationHandlers } from "./conversations";
+import { db } from "./schema";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
+import pino from "pino";
+
+export const logger = pino({ level: "debug" });
+
+if (env.MIGRATE) {
+  logger.info("Database migration started");
+  void (await migrate(db, { migrationsFolder: "./drizzle" }));
+}
 
 const bot = new Bot<MyContext>(env.BOT_TOKEN);
 
