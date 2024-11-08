@@ -12,6 +12,9 @@ import { service } from "./routes/service";
 import { notifications } from "./routes/notifications";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { serve } from "@hono/node-server";
+import { config } from "dotenv";
+
+config();
 
 export const logger = pino({ level: "debug" });
 
@@ -53,7 +56,7 @@ logger.info(
     Bin instance "${env.NAME}" started on http://localhost:${env.PORT}. 
     Link of your Bin for Telegram bot in local network: "http://127.0.0.1:${env.PORT}/api?token=${env.AUTH_TOKEN}".
     Replace 127.0.0.1:${env.PORT} with your domain name.
-  `,
+  `
 );
 
 serve({ port: env.PORT, hostname: env.HOSTNAME, fetch: app.fetch });

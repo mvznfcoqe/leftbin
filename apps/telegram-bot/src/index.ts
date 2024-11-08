@@ -1,5 +1,4 @@
 import { Bot, session } from "grammy";
-
 import { env } from "./env";
 import { handlers } from "./handlers";
 import type { MyContext } from "./lib/grammy";
@@ -10,6 +9,9 @@ import { conversationHandlers } from "./conversations";
 import { db } from "./schema";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import pino from "pino";
+import { config } from "dotenv";
+
+config();
 
 export const logger = pino({ level: "debug" });
 
