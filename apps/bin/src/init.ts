@@ -3,7 +3,7 @@ import { logger } from ".";
 import { services } from "./models/service";
 import { getMethodRecheckTime } from "./models/service/lib";
 import { db, schema } from "./schema";
-import { parserQueue, parserWorkerName } from "./workers/parser";
+import { parserQueue, parserWorkerName } from "@/workers/parser";
 import { getCurrentUser } from "./models/user";
 
 const initBin = async (bin: typeof schema.bin.$inferInsert) => {
@@ -38,19 +38,19 @@ const startRepeatableJobs = async () => {
     .where(
       and(
         eq(schema.userServiceMethod.active, true),
-        eq(schema.userServiceMethod.userId, user.id),
-      ),
+        eq(schema.userServiceMethod.userId, user.id)
+      )
     )
     .leftJoin(
       schema.service,
-      eq(schema.service.id, schema.userServiceMethod.serviceId),
+      eq(schema.service.id, schema.userServiceMethod.serviceId)
     )
     .leftJoin(
       schema.serviceMethod,
       and(
         eq(schema.serviceMethod.id, schema.userServiceMethod.methodId),
-        eq(schema.serviceMethod.serviceId, schema.userServiceMethod.serviceId),
-      ),
+        eq(schema.serviceMethod.serviceId, schema.userServiceMethod.serviceId)
+      )
     );
 
   for (const activeMethod of activeMethods) {
@@ -72,7 +72,7 @@ const startRepeatableJobs = async () => {
           every: recheckTime,
         },
         removeOnFail: true,
-      },
+      }
     );
 
     logger.debug({

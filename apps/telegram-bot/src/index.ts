@@ -9,9 +9,6 @@ import { conversationHandlers } from "./conversations";
 import { db } from "./schema";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import pino from "pino";
-import { config } from "dotenv";
-
-config();
 
 export const logger = pino({ level: "debug" });
 

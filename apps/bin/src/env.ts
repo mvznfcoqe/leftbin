@@ -1,4 +1,8 @@
+import dotnev from "dotenv";
+
 export type NODE_ENV = "development";
+
+dotnev.config();
 
 export const env = {
   PORT: Number(process.env.PORT) || 9001,

@@ -12,9 +12,6 @@ import { service } from "./routes/service";
 import { notifications } from "./routes/notifications";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { serve } from "@hono/node-server";
-import { config } from "dotenv";
-
-config();
 
 export const logger = pino({ level: "debug" });
 
