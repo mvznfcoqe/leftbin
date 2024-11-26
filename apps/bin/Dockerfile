@@ -1,10 +1,10 @@
-FROM node:23.1.0
+FROM node:latest
 
 WORKDIR /app
 COPY . .
 
-RUN npm install --save-dev tsx 
-RUN npm install
+RUN npm install --save-dev tsx
+RUN npm install --force  --verbose
 RUN npx -y playwright@1.48.1 install --with-deps
 
 ENV PORT 9001

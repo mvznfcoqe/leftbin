@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start:dev": "node --import=tsx --watch ./src/index.ts",
-    "start:prod": "node --import=tsx --watch ./src/index.ts",
+    "start:prod": "node --import=tsx ./src/index.ts",
     "start:test": "node --import=tsx --watch --test **/*.test.ts",
     "migrate": "npx drizzle-kit push",
     "test": "node --import=tsx --test **/*.test.ts"
