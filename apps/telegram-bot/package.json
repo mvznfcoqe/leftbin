@@ -4,10 +4,10 @@
   "type": "module",
   "scripts": {
     "start:dev": "node --import=tsx --watch ./src/index.ts",
-    "start:prod": "node ./dist/src/index.js",
+    "start:prod": "node --import=tsx --watch ./src/index.ts",
     "start:test": "node --import=tsx --watch --test **/*.test.ts",
-    "test": "node --import=tsx --test **/*.test.ts",
-    "build": "npx tsc --build tsconfig.json"
+    "migrate": "npx drizzle-kit push",
+    "test": "node --import=tsx --test **/*.test.ts"
   },
   "devDependencies": {
     "@types/pg": "^8.11.10",
