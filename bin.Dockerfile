@@ -2,10 +2,10 @@ FROM node:latest
 
 WORKDIR /app
 COPY . .
-
-RUN npm install --save-dev tsx
-RUN npm install --force  --verbose
+RUN npm install
 RUN npx -y playwright@1.48.1 install --with-deps
+
+WORKDIR /app/apps/bin
 
 ENV PORT 9001
 EXPOSE 9001

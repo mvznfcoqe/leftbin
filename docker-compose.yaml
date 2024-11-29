@@ -30,7 +30,9 @@ services:
       retries: 10
 
   bin:
-    build: ./apps/bin
+    build:
+      context: .
+      dockerfile: bin.Dockerfile
     ports:
       - 9001:9001
     depends_on:
@@ -70,7 +72,9 @@ services:
       retries: 10
 
   telegram-bot:
-    build: ./apps/telegram-bot
+    build:
+      context: .
+      dockerfile: telegram-bot.Dockerfile
     depends_on:
       telegram-bot-db:
         condition: service_healthy
