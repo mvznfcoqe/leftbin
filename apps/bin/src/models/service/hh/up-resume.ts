@@ -24,6 +24,23 @@ const upResume: ServiceMethodFn<Params> = async ({ context }) => {
   const page = await context.newPage();
   await page.goto(baseUrl, { timeout: gotoTimeout });
   await page.waitForTimeout(1000);
+  await page.screenshot({ path: "screenshot.png", fullPage: true });
+
+  await page.waitForSelector('div[data-qa="resume"]');
+  const resumes = await page.locator('div[data-qa="resume"]').all();
+
+  for (const index in resumes) {
+    const upButton = resumes[index]
+      .locator('button[data-qa="resume-update-button_actions"]')
+      .first();
+
+    if (!upButton) {
+      break;
+    }
+
+    await upButton.click();
+    await page.waitForTimeout(1500);
+  }
 
   const inserted = await db
     .insert(schema.serviceData)
