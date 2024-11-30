@@ -111,7 +111,7 @@ export const parserWorker = new Worker(
       where: eq(schema.cookie.serviceId, methodData.service.id),
     });
 
-    page.setCookie(
+    await page.setCookie(
       ...serviceCookies.map(
         ({ name, domain, expires, httpOnly, path, secure, value }) => ({
           name,

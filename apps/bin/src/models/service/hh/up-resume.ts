@@ -24,6 +24,8 @@ const upResume: ServiceMethodFn<Params> = async ({ page }) => {
   await page.goto(baseUrl, { timeout: gotoTimeout });
   await sleep(1000);
 
+  await page.screenshot({ path: "screenshot.png" });
+
   await page.waitForSelector('div[data-qa="resume"]');
   const resumes = await page.$$('div[data-qa="resume"]');
 
