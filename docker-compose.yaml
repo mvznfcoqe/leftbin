@@ -12,7 +12,6 @@ services:
     restart: unless-stopped
 
   bin:
-    image: bin:latest
     build:
       context: .
       dockerfile: bin.Dockerfile
@@ -33,6 +32,7 @@ services:
       PARSER_REDIS_QUERY_HOST: redis
       HOSTNAME: 0.0.0.0
       CHROME_EXECUTABLE: /usr/bin/google-chrome
+      DATABASE_URL: ${BIN_DATABASE}
     restart: unless-stopped
     volumes:
       - bin-db:/app/apps/bin/db
@@ -44,6 +44,7 @@ services:
     environment:
       BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       MIGRATE: 1
+      DATABASE_URL: ${TELEGRAM_DATABASE}
     restart: unless-stopped
     volumes:
       - telegram-bot-db:/app/apps/telegram-bot/db
