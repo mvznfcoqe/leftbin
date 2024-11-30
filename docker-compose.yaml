@@ -11,24 +11,6 @@ services:
       - 8001:8001
     restart: unless-stopped
 
-  bin-db:
-    image: postgres:14.1-alpine
-    ports:
-      - "5434:5434"
-    volumes:
-      - bin-db:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: bin
-      PGPORT: 5434
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
   bin:
     build:
       context: .
@@ -38,56 +20,30 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-      bin-db:
-        condition: service_healthy
     links:
       - redis
-      - bin-db
     environment:
       AUTH_TOKEN: ${AUTH_TOKEN}
       BASE_RECHECK_TIME: ${BIN_BASE_RECHECK_TIME}
-      DATABASE_URL: ${BIN_DATABASE_URL}
       BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       MIGRATE: 1
       PARSER_REDIS_QUERY_HOST: redis
       HOSTNAME: 0.0.0.0
     restart: unless-stopped
-
-  telegram-bot-db:
-    image: postgres:14.1-alpine
-    ports:
-      - "5433:5433"
     volumes:
-      - telegram-bot-db:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: telegram
-      PGPORT: 5433
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      - bin-db:/app/apps/bin/db
 
   telegram-bot:
     build:
       context: .
       dockerfile: telegram-bot.Dockerfile
-    depends_on:
-      telegram-bot-db:
-        condition: service_healthy
-    links:
-      - telegram-bot-db
     environment:
       BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       MIGRATE: 1
-      DATABASE_URL: ${TELEGRAM_DATABASE_URL}
     restart: unless-stopped
+    volumes:
+      - telegram-bot-db:/app/apps/telegram-bot/db
 
 volumes:
-  bin-db:
-    driver: local
   telegram-bot-db:
-    driver: local
+  bin-db:

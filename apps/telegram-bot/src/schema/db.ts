@@ -1,10 +1,5 @@
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema";
-import { env } from "../env";
+import { env } from "@/env";
 
-export const db = drizzle({
-  connection: {
-    connectionString: env.DATABASE_URL,
-  },
-  schema,
-});
+export const db = drizzle({ connection: { source: env.DATABASE_URL }, schema });

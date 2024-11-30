@@ -1,9 +1,8 @@
-FROM node:latest
+FROM mcr.microsoft.com/playwright:v1.49.0-noble
 
 WORKDIR /app
 COPY . .
 RUN npm install
-RUN npx -y playwright@1.48.1 install --with-deps
 
 WORKDIR /app/apps/bin
 

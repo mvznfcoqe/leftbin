@@ -1,16 +1,13 @@
 import { zValidator } from "@hono/zod-validator";
-import { bearerAuth } from "hono/bearer-auth";
 import { Hono } from "hono";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db, schema } from "../../schema";
 import { parserQueue, parserWorkerName } from "@/workers/parser";
-import { env } from "@/env";
 import { getMethodFnByName } from "@/models/service";
 import { getActiveMethods } from "@/models/services";
 
 const service = new Hono();
-service.use("/*", bearerAuth({ token: env.AUTH_TOKEN }));
 
 const addCookiesDTO = z.object({
   cookies: z.array(

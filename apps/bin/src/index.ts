@@ -10,8 +10,8 @@ import { check } from "./routes/check";
 import { service } from "./routes/service";
 
 import { notifications } from "./routes/notifications";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { serve } from "@hono/node-server";
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 
 export const logger = pino({ level: "debug" });
 
@@ -28,7 +28,7 @@ app.route("/notifications", notifications);
 
 if (env.MIGRATE) {
   logger.info("Database migration started");
-  void (await migrate(db, { migrationsFolder: "./drizzle" }));
+  void migrate(db, { migrationsFolder: "./drizzle" });
 }
 
 try {
