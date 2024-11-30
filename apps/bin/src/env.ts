@@ -13,7 +13,9 @@ export const env = {
   PARSER_REDIS_QUERY_HOST: process.env.PARSER_REDIS_QUERY_HOST || "0.0.0.0",
   PARSER_REDIS_QUERY_PORT: Number(process.env.PARSER_REDIS_QUERY_PORT) || 6379,
 
-  BASE_RECHECK_TIME: Number(process.env.BASE_RECHECK_TIME) || 7200000,
+  BASE_RECHECK_TIME: process.env.BASE_RECHECK_TIME
+    ? Number(process.env.BASE_RECHECK_TIME)
+    : null,
   RANDOMIZE_RECHECK_TIME: Boolean(Number(process.env.RANDOMIZE_RECHECK_TIME)),
 
   NODE_ENV: (process.env.NODE_ENV || "development") as NODE_ENV,

@@ -9,6 +9,13 @@ export type ServiceField = {
   name: string;
 };
 
+export type ServiceParameter = {
+  name: string;
+  title: string;
+  required: boolean;
+  description?: string;
+};
+
 export type ServiceMethodData = {
   id: string | number;
   [x: string]: string | number;
@@ -29,8 +36,12 @@ export type ServiceMethod = {
   name: string;
   title: string;
   recheckTime?: number;
+  baseUrl?: string;
+  isCookiesRequired?: boolean;
   fields: ServiceField[];
   fn: ServiceMethodFn;
+
+  parameters: ServiceParameter[];
 };
 
 export type Service = {
@@ -51,6 +62,10 @@ const getMethodRecheckTime = ({
 }) => {
   const time = recheckTime || env.BASE_RECHECK_TIME;
 
+  if (!time) {
+    return 0;
+  }
+
   if (env.RANDOMIZE_RECHECK_TIME) {
     const randomRecheckTime = Math.floor(Math.random() * time) + time;
 
@@ -69,7 +84,7 @@ const getMethodNewData = ({
 }) => {
   const newData = data.filter(({ id }) => {
     return !previousData.some(
-      (previous) => previous.id.toString() === id.toString(),
+      (previous) => previous.id.toString() === id.toString()
     );
   });
 
@@ -90,7 +105,7 @@ const getMethodPreviousDataByLastId = async ({
     where: and(
       eq(schema.serviceData.id, previousDataId),
       eq(schema.serviceData.serviceId, serviceId),
-      eq(schema.serviceData.methodId, methodId),
+      eq(schema.serviceData.methodId, methodId)
     ),
   });
 
@@ -119,9 +134,77 @@ const getMethodFnByName = async ({
   return methodFn;
 };
 
+const adaptServiceMethods = (info: Service["info"]) => {
+  return info.methods.reduce(
+    (acc, method) => {
+      acc[method.name] = method.fn;
+
+      return acc;
+    },
+    {} as Record<string, ServiceMethodFn>
+  );
+};
+
+const isUrl = (string: string) => {
+  return string.startsWith("http");
+};
+
+const getMethodUrl = ({
+  methodBaseUrl,
+  serviceBaseUrl,
+}: {
+  serviceBaseUrl: typeof schema.service.$inferSelect.baseUrl;
+  methodBaseUrl: typeof schema.serviceMethod.$inferSelect.baseUrl;
+}) => {
+  if (!methodBaseUrl) {
+    return serviceBaseUrl;
+  }
+
+  if (methodBaseUrl && isUrl(methodBaseUrl)) {
+    return methodBaseUrl;
+  }
+
+  return new URL(methodBaseUrl, serviceBaseUrl).href;
+};
+
+const getMethodInfo = async ({
+  methodName,
+  serviceName,
+}: {
+  serviceName: string;
+  methodName: string;
+}) => {
+  const services = await db
+    .select()
+    .from(schema.service)
+    .where(eq(schema.service.name, serviceName));
+
+  const service = services[0];
+
+  if (!service) return;
+
+  const method = await db.query.serviceMethod.findFirst({
+    where: and(
+      eq(schema.serviceMethod.name, methodName),
+      eq(schema.serviceMethod.serviceId, service.id)
+    ),
+  });
+
+  if (!method) return;
+
+  const baseUrl = getMethodUrl({
+    methodBaseUrl: method.baseUrl,
+    serviceBaseUrl: service.baseUrl,
+  });
+
+  return { service, method, baseUrl };
+};
+
 export {
   getMethodRecheckTime,
   getMethodNewData,
   getMethodPreviousDataByLastId,
   getMethodFnByName,
+  adaptServiceMethods,
+  getMethodInfo,
 };

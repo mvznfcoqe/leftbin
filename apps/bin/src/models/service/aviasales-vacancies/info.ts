@@ -1,5 +1,8 @@
 import type { Service } from "../lib";
-import { getVacancies, getVacanciesMethodName } from "./get-vacancies";
+import {
+  getVacancies,
+  methodName as getVacanciesMethodName,
+} from "./get-vacancies";
 
 const info: Service["info"] = {
   name: "aviasales-vacancies",
@@ -15,6 +18,7 @@ const info: Service["info"] = {
       ],
       recheckTime: 86400000,
       fn: getVacancies,
+      parameters: [{ name: "", title: "", required: false }]
     },
   ],
 };

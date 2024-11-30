@@ -51,10 +51,48 @@ const serviceMethod = pgTable("service_method", {
     .notNull(),
   name: text("name").notNull(),
   title: text("title").notNull(),
+  baseUrl: text("base_url"),
+  isCookiesRequired: boolean("is_cookies_required").default(false).notNull(),
 
   type: text({ enum: ["code"] })
     .notNull()
     .default("code"),
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+const serviceMethodField = pgTable("service_method_field", {
+  id: serial().primaryKey(),
+  name: text("method").notNull().unique(),
+  title: text("title").notNull(),
+  serviceId: integer("service_id")
+    .references(() => service.id)
+    .notNull(),
+  methodId: integer("method_id")
+    .references(() => serviceMethod.id)
+    .notNull(),
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+const serviceMethodParameter = pgTable("service_method_parameter", {
+  id: serial().primaryKey(),
+  name: text("name").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description"),
+
+  serviceId: integer("service_id")
+    .references(() => service.id)
+    .notNull(),
+  methodId: integer("method_id")
+    .references(() => serviceMethod.id)
+    .notNull(),
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at")
@@ -81,24 +119,8 @@ const userServiceMethod = pgTable("user_service_method", {
     defaultNotifyAbout
   ),
   recheckTime: integer("recheck_time"),
+  randomizeRecheckTime: boolean("randomize_recheck_time").default(false),
   active: boolean("active").default(true),
-
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => new Date()),
-});
-
-const serviceMethodField = pgTable("service_method_field", {
-  id: serial().primaryKey(),
-  name: text("method").notNull(),
-  title: text("title").notNull(),
-  serviceId: integer("service_id")
-    .references(() => service.id)
-    .notNull(),
-  methodId: integer("method_id")
-    .references(() => serviceMethod.id)
-    .notNull(),
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at")
@@ -148,8 +170,9 @@ export {
   user,
   service,
   serviceMethod,
-  userServiceMethod,
   serviceMethodField,
+  serviceMethodParameter,
+  userServiceMethod,
   serviceData,
   cookie,
 };

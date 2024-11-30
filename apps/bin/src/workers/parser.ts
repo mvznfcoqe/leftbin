@@ -76,15 +76,15 @@ export const parserWorker = new Worker(
         schema.serviceMethod,
         and(
           eq(schema.serviceMethod.serviceId, schema.service.id),
-          eq(schema.serviceMethod.name, methodName),
-        ),
+          eq(schema.serviceMethod.name, methodName)
+        )
       )
       .leftJoin(
         schema.userServiceMethod,
         and(
           eq(schema.userServiceMethod.methodId, schema.serviceMethod.id),
-          eq(schema.userServiceMethod.serviceId, schema.service.id),
-        ),
+          eq(schema.userServiceMethod.serviceId, schema.service.id)
+        )
       )
       .then((methods) => {
         return methods[0];
@@ -100,8 +100,26 @@ export const parserWorker = new Worker(
       throw new Error(`Failed to find fn for ${serviceName}, ${methodName}`);
     }
 
-    const browser = await firefox.launch();
-    const context = await browser.newContext();
+    const browser = await firefox.launch({});
+    const context = await browser.newContext({});
+
+    const serviceCookies = await db.query.cookie.findMany({
+      where: eq(schema.cookie.serviceId, methodData.service.id),
+    });
+
+    context.addCookies(
+      serviceCookies.map(
+        ({ name, domain, expires, httpOnly, path, secure, value }) => ({
+          name,
+          value,
+          domain,
+          expires,
+          httpOnly: Boolean(httpOnly),
+          path,
+          secure: Boolean(secure),
+        })
+      )
+    );
 
     const parsed = await methodFn({ context, params: query });
 
@@ -119,7 +137,7 @@ export const parserWorker = new Worker(
       .findMany({
         where: and(
           eq(schema.serviceMethodField.serviceId, methodData.service.id),
-          eq(schema.serviceMethodField.methodId, methodData.serviceMethod.id),
+          eq(schema.serviceMethodField.methodId, methodData.serviceMethod.id)
         ),
       })
       .then((fields) => {
@@ -153,7 +171,7 @@ export const parserWorker = new Worker(
       `
 Сервис: ${methodData.service.title}
 ${formattedData}
-`,
+`
     );
 
     return parsed;
@@ -162,7 +180,7 @@ ${formattedData}
     connection,
     concurrency: 5,
     removeOnFail: { count: 0 },
-  },
+  }
 );
 
 parserWorker.on("completed", (job) => {

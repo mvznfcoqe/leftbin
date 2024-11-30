@@ -1,7 +1,7 @@
 import { db, schema } from "@/schema";
-import { eq } from "drizzle-orm";
 import { info } from "./info";
-import type { ServiceMethodFn } from "../lib";
+import { getMethodInfo, type ServiceMethodFn } from "../lib";
+import { gotoTimeout } from "../config";
 
 type Vacancy = {
   id: string;
@@ -13,31 +13,27 @@ type Params = {
   nameIncludes?: string;
 };
 
-export const getVacanciesMethodName = "get-vacancies";
+const methodName = "get-vacancies";
 
 const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
   context,
   params,
 }) => {
-  const services = await db
-    .select()
-    .from(schema.service)
-    .where(eq(schema.service.name, info.name));
-
-  const service = services[0];
-
-  if (!service) return;
-
-  const method = await db.query.serviceMethod.findFirst({
-    where: eq(schema.serviceMethod.name, getVacanciesMethodName),
+  const methodInfo = await getMethodInfo({
+    methodName,
+    serviceName: info.name,
   });
 
-  if (!method) return;
+  if (!methodInfo) {
+    throw new Error("Failed to get method info");
+  }
+
+  const { method, service, baseUrl } = methodInfo;
 
   const vacancies: Vacancy[] = [];
 
   const page = await context.newPage();
-  await page.goto(service.baseUrl, { timeout: 120000 });
+  await page.goto(baseUrl, { timeout: gotoTimeout });
   await page.waitForTimeout(1000);
 
   const vacanciesContainer = page.locator(".vacancies");
@@ -59,7 +55,7 @@ const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
       break;
     }
 
-    const base = new URL(service.baseUrl).origin;
+    const base = new URL(baseUrl).origin;
 
     const vacancyUrl = `${base}${url}`;
     const vacancyId = url.split("/").at(-1);
@@ -81,4 +77,4 @@ const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
   return { data: vacancies, insertedId: insertedVacancies.id };
 };
 
-export { getVacancies };
+export { getVacancies, methodName };

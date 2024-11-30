@@ -30,6 +30,8 @@ export const addService = async ({
         name: method.name,
         type: "code",
         title: method.title,
+        baseUrl: method.baseUrl,
+        isCookiesRequired: method.isCookiesRequired,
       })
       .returning();
 
@@ -45,6 +47,7 @@ export const addService = async ({
     }
 
     await db.insert(schema.userServiceMethod).values({
+      active: true,
       serviceId: insertedService.id,
       methodId: insertedMethod.id,
       notifyAbout: defaultNotifyAbout,

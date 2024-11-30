@@ -64,6 +64,10 @@ const startRepeatableJobs = async () => {
       recheckTime: userServiceMethod.recheckTime,
     });
 
+    if (!recheckTime || recheckTime < 1000) {
+      return;
+    }
+
     await parserQueue.add(
       parserWorkerName,
       { methodName: serviceMethod.name, serviceName: service.name },
