@@ -43,6 +43,7 @@ const upResume: ServiceMethodFn<Params> = async ({ page }) => {
         continue;
       }
 
+      await upButton.click();
       await sleep(1500);
       logger.debug("[up-resume]: Resume update button clicked");
     }
