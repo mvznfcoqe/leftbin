@@ -10,6 +10,8 @@ type Params = {
   resumeName?: string;
 };
 
+const upResumeButtonName = "Поднять в поиске";
+
 const upResume: ServiceMethodFn<Params> = async ({ page }) => {
   try {
     const methodInfo = await getMethodInfo({
@@ -31,20 +33,17 @@ const upResume: ServiceMethodFn<Params> = async ({ page }) => {
     const resumes = await page.$$('div[data-qa="resume"]');
     logger.debug("[up-resume]: Resumes collected");
 
-    for (const index in resumes) {
-      const upButton = await resumes[index].$(
-        'xpath///span[contains(text(), "Поднять в поиске")]'
+    for (const resume of resumes) {
+      const upButton = await resume.$(
+        `::-p-xpath(//*[text()[contains(., "${upResumeButtonName}")]])`
       );
 
       if (!upButton) {
         logger.warn("[up-resume]: Resume update button was not found");
-        break;
+        continue;
       }
 
-      logger.debug(upButton);
-      upButton.click();
       await sleep(1500);
-
       logger.debug("[up-resume]: Resume update button clicked");
     }
 
