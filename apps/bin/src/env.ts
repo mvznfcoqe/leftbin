@@ -23,4 +23,5 @@ export const env = {
   DATABASE_URL: process.env.DATABASE_URL || "",
 
   MIGRATE: Boolean(Number(process.env.MIGRATE)) || false,
+  CHROME_EXECUTABLE: process.env.CHROME_EXECUTABLE,
 };

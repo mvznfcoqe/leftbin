@@ -1,5 +1,5 @@
 import { db, schema } from "@/schema";
-import { getMethodInfo, ServiceMethodFn } from "../lib";
+import { sleep, getMethodInfo, ServiceMethodFn } from "../lib";
 import { info } from "./info";
 import { gotoTimeout } from "../config";
 
@@ -9,7 +9,7 @@ type Params = {
   resumeName?: string;
 };
 
-const upResume: ServiceMethodFn<Params> = async ({ context }) => {
+const upResume: ServiceMethodFn<Params> = async ({ page }) => {
   const methodInfo = await getMethodInfo({
     methodName,
     serviceName: info.name,
@@ -21,25 +21,23 @@ const upResume: ServiceMethodFn<Params> = async ({ context }) => {
 
   const { method, service, baseUrl } = methodInfo;
 
-  const page = await context.newPage();
   await page.goto(baseUrl, { timeout: gotoTimeout });
-  await page.waitForTimeout(1000);
-  await page.screenshot({ path: "screenshot.png", fullPage: true });
+  await sleep(1000);
 
   await page.waitForSelector('div[data-qa="resume"]');
-  const resumes = await page.locator('div[data-qa="resume"]').all();
+  const resumes = await page.$$('div[data-qa="resume"]');
 
   for (const index in resumes) {
-    const upButton = resumes[index]
-      .locator('button[data-qa="resume-update-button_actions"]')
-      .first();
+    const upButton = await resumes[index].$(
+      'button[data-qa="resume-update-button_actions"]'
+    );
 
     if (!upButton) {
       break;
     }
 
     await upButton.click();
-    await page.waitForTimeout(1500);
+    await sleep(1500);
   }
 
   const inserted = await db

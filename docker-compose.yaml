@@ -12,9 +12,12 @@ services:
     restart: unless-stopped
 
   bin:
+    image: bin:latest
     build:
       context: .
       dockerfile: bin.Dockerfile
+      platforms:
+        - linux/amd64
     ports:
       - 9001:9001
     depends_on:
@@ -29,6 +32,7 @@ services:
       MIGRATE: 1
       PARSER_REDIS_QUERY_HOST: redis
       HOSTNAME: 0.0.0.0
+      CHROME_EXECUTABLE: /usr/bin/google-chrome
     restart: unless-stopped
     volumes:
       - bin-db:/app/apps/bin/db

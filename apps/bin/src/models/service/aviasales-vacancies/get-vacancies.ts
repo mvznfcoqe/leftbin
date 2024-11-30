@@ -1,6 +1,6 @@
 import { db, schema } from "@/schema";
 import { info } from "./info";
-import { getMethodInfo, type ServiceMethodFn } from "../lib";
+import { getMethodInfo, sleep, type ServiceMethodFn } from "../lib";
 import { gotoTimeout } from "../config";
 
 type Vacancy = {
@@ -16,7 +16,7 @@ type Params = {
 const methodName = "get-vacancies";
 
 const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
-  context,
+  page,
   params,
 }) => {
   const methodInfo = await getMethodInfo({
@@ -32,20 +32,28 @@ const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
 
   const vacancies: Vacancy[] = [];
 
-  const page = await context.newPage();
   await page.goto(baseUrl, { timeout: gotoTimeout });
-  await page.waitForTimeout(1000);
+  await sleep(1000);
 
-  const vacanciesContainer = page.locator(".vacancies");
+  const vacanciesContainer = await page.$(".vacancies");
+
+  if (!vacanciesContainer) {
+    throw new Error("Failed to find vacanciesContainer");
+  }
 
   await page.waitForSelector(".vacancies_vacancy");
-  const locators = await vacanciesContainer.locator(".vacancies_vacancy").all();
+  const locators = await vacanciesContainer.$$(".vacancies_vacancy");
 
   for (const index in locators) {
-    const name = await locators[index]
-      .locator(".vacancies_vacancy__name")
-      .textContent();
-    const url = await locators[index].getAttribute("href");
+    const name = await locators[index].$eval(
+      ".vacancies_vacancy__name",
+      ({ textContent }) => {
+        return textContent;
+      }
+    );
+    const url = await locators[index].evaluate((element) => {
+      return element.getAttribute("href");
+    });
 
     const isDataInvalid = !name || !url;
     if (isDataInvalid) {

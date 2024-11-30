@@ -1,6 +1,6 @@
 import { db, schema } from "@/schema";
 import { env } from "@/env";
-import type { BrowserContext } from "playwright";
+import type { Page } from "puppeteer-core";
 import { and, eq } from "drizzle-orm";
 import { services } from ".";
 
@@ -27,10 +27,7 @@ export type ServiceResponse<D = ServiceMethodData> =
 export type ServiceMethodFn<
   P = Record<string, unknown>,
   D = ServiceMethodData,
-> = (params: {
-  context: BrowserContext;
-  params?: P;
-}) => Promise<ServiceResponse<D>>;
+> = (params: { page: Page; params?: P }) => Promise<ServiceResponse<D>>;
 
 export type ServiceMethod = {
   name: string;
@@ -198,6 +195,10 @@ const getMethodInfo = async ({
   });
 
   return { service, method, baseUrl };
+};
+
+export const sleep = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 export {

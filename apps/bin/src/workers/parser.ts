@@ -1,5 +1,5 @@
 import { Job, Queue, Worker } from "bullmq";
-import { firefox } from "playwright";
+import { launch } from "puppeteer-core";
 import { logger } from "..";
 import { connection } from "./connection";
 import { bot } from "@/bot";
@@ -13,6 +13,7 @@ import {
   getMethodPreviousDataByLastId,
 } from "@/models/service";
 import { getCurrentUser } from "@/models/user";
+import { env } from "@/env";
 
 export const parserWorkerName = "parserQueue";
 
@@ -65,9 +66,9 @@ export const parserWorker = new Worker(
     const { methodName, query, serviceName } = data;
 
     const methodData = await db
-      .selectDistinctOn([schema.serviceMethod.id], {
-        service: schema.service,
+      .selectDistinct({
         serviceMethod: schema.serviceMethod,
+        service: schema.service,
         userServiceMethod: schema.userServiceMethod,
       })
       .from(schema.service)
@@ -100,15 +101,18 @@ export const parserWorker = new Worker(
       throw new Error(`Failed to find fn for ${serviceName}, ${methodName}`);
     }
 
-    const browser = await firefox.launch({});
-    const context = await browser.newContext({});
+    const browser = await launch({
+      executablePath: env.CHROME_EXECUTABLE,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+    const page = await browser.newPage();
 
     const serviceCookies = await db.query.cookie.findMany({
       where: eq(schema.cookie.serviceId, methodData.service.id),
     });
 
-    context.addCookies(
-      serviceCookies.map(
+    page.setCookie(
+      ...serviceCookies.map(
         ({ name, domain, expires, httpOnly, path, secure, value }) => ({
           name,
           value,
@@ -121,7 +125,7 @@ export const parserWorker = new Worker(
       )
     );
 
-    const parsed = await methodFn({ context, params: query });
+    const parsed = await methodFn({ page, params: query });
 
     if (!parsed?.data) {
       throw new Error(`Failed to parse data for ${serviceName}, ${methodName}`);
