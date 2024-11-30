@@ -71,6 +71,8 @@ const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
     vacancies.push({ id: vacancyId || name, name, url: vacancyUrl });
   }
 
+  await page.close();
+
   const inserted = await db
     .insert(schema.serviceData)
     .values({
