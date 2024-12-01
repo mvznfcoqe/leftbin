@@ -20,8 +20,6 @@ const initServices = async () => {
 };
 
 const startRepeatableJobs = async () => {
-  await parserQueue.drain();
-
   const user = await getCurrentUser();
 
   if (!user) {
@@ -68,14 +66,14 @@ const startRepeatableJobs = async () => {
       return;
     }
 
-    await parserQueue.add(
+    await parserQueue.upsertJobScheduler(
       parserWorkerName,
-      { methodName: serviceMethod.name, serviceName: service.name },
       {
-        repeat: {
-          every: recheckTime,
-        },
-        removeOnFail: true,
+        every: recheckTime,
+      },
+      {
+        data: { methodName: serviceMethod.name, serviceName: service.name },
+        name: serviceMethod.name,
       }
     );
 
