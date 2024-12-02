@@ -14,6 +14,7 @@ import {
 } from "@/models/service";
 import { getCurrentUser } from "@/models/user";
 import { env } from "@/env";
+import { upsertParserJobScheduler } from "@/init";
 
 export const parserWorkerName = "parserQueue";
 
@@ -21,6 +22,9 @@ export type ServiceParserJobData = {
   serviceName: string;
   methodName: string;
   query?: Record<string, string>;
+
+  methodRecheckTime: number | null;
+  randomizeRecheckTime: boolean;
 };
 
 export const parserQueue = new Queue<ServiceParserJobData>(parserWorkerName, {
@@ -187,7 +191,18 @@ ${formattedData}
   }
 );
 
-parserWorker.on("completed", (job) => {
+parserWorker.on("completed", async (job) => {
+  if (job.data.methodRecheckTime) {
+    const { recheckTime } = await upsertParserJobScheduler({ ...job.data });
+
+    logger.debug({
+      jobId: job.id,
+      service: job.data.serviceName,
+      method: job.data.methodName,
+      recheckTime,
+    });
+  }
+
   if (!job.returnvalue) {
     logger.debug({
       jobId: job.id,
@@ -207,9 +222,20 @@ parserWorker.on("completed", (job) => {
   });
 });
 
-parserWorker.on("failed", (job, err) => {
+parserWorker.on("failed", async (job, err) => {
   if (!job) {
     return;
+  }
+
+  if (job.data.methodRecheckTime) {
+    const { recheckTime } = await upsertParserJobScheduler({ ...job.data });
+
+    logger.debug({
+      jobId: job.id,
+      service: job.data.serviceName,
+      method: job.data.methodName,
+      recheckTime,
+    });
   }
 
   logger.debug({

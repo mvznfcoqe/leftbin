@@ -54,8 +54,10 @@ export type Service = {
 
 const getMethodRecheckTime = ({
   recheckTime,
+  randomizeRecheckTime,
 }: {
   recheckTime?: typeof schema.userServiceMethod.$inferSelect.recheckTime;
+  randomizeRecheckTime?: boolean;
 }) => {
   const time = recheckTime || env.BASE_RECHECK_TIME;
 
@@ -63,13 +65,13 @@ const getMethodRecheckTime = ({
     return 0;
   }
 
-  if (env.RANDOMIZE_RECHECK_TIME) {
-    const randomRecheckTime = Math.floor(Math.random() * time) + time;
-
-    return randomRecheckTime;
+  if (!randomizeRecheckTime) {
+    return time;
   }
 
-  return time;
+  const step = time * 0.5;
+
+  return time + Math.floor(Math.random() * (2 * step + 1)) - step;
 };
 
 const getMethodNewData = ({

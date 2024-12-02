@@ -12,8 +12,10 @@ const info: Service["info"] = {
       fields: [],
       fn: upResume,
       baseUrl: "/applicant/resumes",
-      parameters: [{ name: 'resumeName', title: "Название резюме", required: false }],
-      recheckTime: 21600000
+      parameters: [
+        { name: "resumeName", title: "Название резюме", required: false },
+      ],
+      recheckTime: 14_400_000,
     },
   ],
 };

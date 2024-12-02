@@ -19,6 +19,58 @@ const initServices = async () => {
   }
 };
 
+const getJobSchedulerNameByService = ({
+  method,
+  service,
+}: {
+  service: string;
+  method: string;
+}) => {
+  return `[${parserWorkerName}]: ${service} ${method}`;
+};
+
+export const upsertParserJobScheduler = async ({
+  methodName,
+  randomizeRecheckTime,
+  methodRecheckTime,
+  serviceName,
+}: {
+  methodRecheckTime: number | null;
+  randomizeRecheckTime: boolean;
+  serviceName: string;
+  methodName: string;
+}) => {
+  const recheckTime = getMethodRecheckTime({
+    recheckTime: methodRecheckTime,
+    randomizeRecheckTime: Boolean(randomizeRecheckTime),
+  });
+
+  if (!recheckTime || recheckTime < 1000) {
+    throw new Error("Invalid recheck time");
+  }
+
+  await parserQueue.upsertJobScheduler(
+    getJobSchedulerNameByService({
+      service: serviceName,
+      method: methodName,
+    }),
+    {
+      every: recheckTime,
+    },
+    {
+      data: {
+        methodName,
+        serviceName,
+        methodRecheckTime,
+        randomizeRecheckTime,
+      },
+      name: serviceName,
+    }
+  );
+
+  return { recheckTime };
+};
+
 const startRepeatableJobs = async () => {
   const user = await getCurrentUser();
 
@@ -54,28 +106,16 @@ const startRepeatableJobs = async () => {
   for (const activeMethod of activeMethods) {
     const { service, serviceMethod, userServiceMethod } = activeMethod;
 
-    if (!service || !serviceMethod) {
+    if (!service || !serviceMethod || !userServiceMethod.recheckTime) {
       return;
     }
 
-    const recheckTime = getMethodRecheckTime({
-      recheckTime: userServiceMethod.recheckTime,
+    const { recheckTime } = await upsertParserJobScheduler({
+      methodName: serviceMethod.name,
+      methodRecheckTime: userServiceMethod.recheckTime,
+      randomizeRecheckTime: Boolean(userServiceMethod.randomizeRecheckTime),
+      serviceName: service.name,
     });
-
-    if (!recheckTime || recheckTime < 1000) {
-      return;
-    }
-
-    await parserQueue.upsertJobScheduler(
-      parserWorkerName,
-      {
-        every: recheckTime,
-      },
-      {
-        data: { methodName: serviceMethod.name, serviceName: service.name },
-        name: serviceMethod.name,
-      }
-    );
 
     logger.debug({
       service: service.name,
