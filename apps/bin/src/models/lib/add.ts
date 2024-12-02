@@ -53,6 +53,7 @@ export const addService = async ({
       notifyAbout: defaultNotifyAbout,
       userId: user.id,
       recheckTime: method.recheckTime,
+      randomizeRecheckTime: true,
     });
   }
 };
