@@ -10,6 +10,8 @@ services:
       - 6379:6379
       - 8001:8001
     restart: unless-stopped
+    volumes:
+      - redis:/data
 
   bin:
     build:
@@ -52,3 +54,4 @@ services:
 volumes:
   telegram-bot-db:
   bin-db:
+  redis:
