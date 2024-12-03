@@ -16,7 +16,7 @@ const info: Service["info"] = {
         { title: "Название вакансии", name: "name" },
         { title: "Ссылка", name: "url" },
       ],
-      recheckTime: 43_200_000,
+      recheckTime: 43200000,
       fn: getVacancies,
       parameters: [{ name: "", title: "", required: false }],
     },

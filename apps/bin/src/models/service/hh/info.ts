@@ -15,7 +15,7 @@ const info: Service["info"] = {
       parameters: [
         { name: "resumeName", title: "Название резюме", required: false },
       ],
-      recheckTime: 14_400_000,
+      recheckTime: 14400000,
     },
   ],
 };
