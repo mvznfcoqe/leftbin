@@ -1,6 +1,7 @@
 import { bot } from "@/bot";
 import { env } from "@/env";
 import { addParserJob } from "@/init";
+import { logger } from "@/logger";
 import { formatServiceMethodData } from "@/models/notifications";
 import {
   getMethodFnByName,
@@ -13,7 +14,6 @@ import { db, schema } from "@/schema";
 import { Job, Queue, Worker } from "bullmq";
 import { and, eq } from "drizzle-orm";
 import { launch } from "puppeteer-core";
-import { logger } from "..";
 import { connection } from "./connection";
 
 export const parserWorkerName = "parserQueue";

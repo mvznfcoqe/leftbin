@@ -5,11 +5,11 @@ import {
 } from "@/workers/parser";
 import { Job } from "bullmq";
 import { and, eq } from "drizzle-orm";
-import { logger } from ".";
 import { services } from "./models/service";
 import { getMethodRecheckTime } from "./models/service/lib";
 import { getCurrentUser } from "./models/user";
 import { db, schema } from "./schema";
+import { logger } from "./logger";
 
 const initBin = async (bin: typeof schema.bin.$inferInsert) => {
   await db.insert(schema.bin).values(bin);

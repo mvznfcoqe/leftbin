@@ -1,8 +1,8 @@
 import { db, schema } from "@/schema";
-import { sleep, getMethodInfo, ServiceMethodFn } from "../lib";
-import { info } from "./info";
 import { gotoTimeout } from "../config";
-import { logger } from "@/index";
+import { getMethodInfo, ServiceMethodFn, sleep } from "../lib";
+import { info } from "./info";
+import { logger } from "@/logger";
 
 const methodName = "up-resume";
 
@@ -64,4 +64,4 @@ const upResume: ServiceMethodFn<Params> = async ({ page }) => {
   }
 };
 
-export { upResume, methodName };
+export { methodName, upResume };

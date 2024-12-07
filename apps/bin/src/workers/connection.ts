@@ -1,8 +1,9 @@
 import { env } from "@/env";
+import { logger } from "@/logger";
 import IORedis from "ioredis";
-import { logger } from "..";
 
 export const connection = new IORedis({
+  maxRetriesPerRequest: 0,
   host: env.PARSER_REDIS_QUERY_HOST,
   port: env.PARSER_REDIS_QUERY_PORT,
 });

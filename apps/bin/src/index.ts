@@ -1,19 +1,16 @@
 import { Hono } from "hono";
 
-import pino from "pino";
-
+import { eq } from "drizzle-orm";
 import { env } from "./env";
 import { init, startRepeatableJobs } from "./init";
-import { db, schema } from "./schema";
-import { eq } from "drizzle-orm";
 import { check } from "./routes/check";
 import { service } from "./routes/service";
+import { db, schema } from "./schema";
 
-import { notifications } from "./routes/notifications";
 import { serve } from "@hono/node-server";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-
-export const logger = pino({ level: "debug" });
+import { logger } from "./logger";
+import { notifications } from "./routes/notifications";
 
 if (!env.AUTH_TOKEN) {
   throw Error("Auth token wasn't specified");
