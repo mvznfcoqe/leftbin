@@ -198,7 +198,9 @@ parserWorker.on("completed", async (job) => {
     parsedItemsCount: job.returnvalue ? job.returnvalue.data.length : 0,
   });
 
-  await addParserJob({ ...job.data });
+  if (job.data.repeat) {
+    await addParserJob({ ...job.data });
+  }
 });
 
 parserWorker.on("failed", async (job, err) => {
