@@ -60,6 +60,12 @@ export const addParserJob = async ({
   methodName: string;
 }) => {
   if (!userMethodId) {
+    logger.debug({
+      service: serviceName,
+      method: methodName,
+      status: "Initialized non-repeatable job",
+    });
+
     await parserQueue.add(
       getJobParserName({
         service: serviceName,
@@ -70,12 +76,6 @@ export const addParserJob = async ({
         serviceName,
       }
     );
-
-    logger.debug({
-      service: serviceName,
-      method: methodName,
-      status: "Initialized non-repeatable job",
-    });
 
     return;
   }
@@ -97,6 +97,13 @@ export const addParserJob = async ({
     throw new Error("Invalid recheck time");
   }
 
+  logger.debug({
+    service: serviceName,
+    method: methodName,
+    status: "Initialized repeatable job",
+    recheckTime,
+  });
+
   await parserQueue.add(
     getJobParserName({
       userMethodId,
@@ -113,13 +120,6 @@ export const addParserJob = async ({
       delay: recheckTime,
     }
   );
-
-  logger.debug({
-    service: serviceName,
-    method: methodName,
-    status: "Initialized repeatable job",
-    recheckTime,
-  });
 };
 
 const startRepeatableJobs = async () => {

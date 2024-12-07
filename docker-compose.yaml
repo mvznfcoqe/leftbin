@@ -12,6 +12,8 @@ services:
     restart: unless-stopped
     volumes:
       - redis:/data
+    networks:
+      - app-network
 
   bin:
     build:
@@ -38,6 +40,8 @@ services:
     restart: unless-stopped
     volumes:
       - bin-db:/app/apps/bin/db
+    networks:
+      - app-network
 
   telegram-bot:
     build:
@@ -50,8 +54,14 @@ services:
     restart: unless-stopped
     volumes:
       - telegram-bot-db:/app/apps/telegram-bot/db
+    networks:
+      - app-network
 
 volumes:
   telegram-bot-db:
   bin-db:
   redis:
+
+networks:
+  app-network:
+    driver: bridge
