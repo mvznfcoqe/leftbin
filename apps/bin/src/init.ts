@@ -1,10 +1,15 @@
+import {
+  parserQueue,
+  parserWorkerName,
+  ServiceParserJobData,
+} from "@/workers/parser";
+import { Job } from "bullmq";
 import { and, eq } from "drizzle-orm";
 import { logger } from ".";
 import { services } from "./models/service";
 import { getMethodRecheckTime } from "./models/service/lib";
-import { db, schema } from "./schema";
-import { parserQueue, parserWorkerName } from "@/workers/parser";
 import { getCurrentUser } from "./models/user";
+import { db, schema } from "./schema";
 
 const initBin = async (bin: typeof schema.bin.$inferInsert) => {
   await db.insert(schema.bin).values(bin);
@@ -19,54 +24,76 @@ const initServices = async () => {
   }
 };
 
-const getJobSchedulerNameByService = ({
+const getJobParserName = ({
   method,
   service,
+  userMethodId,
 }: {
+  userMethodId: number;
   service: string;
   method: string;
 }) => {
-  return `[${parserWorkerName}]: ${service} ${method}`;
+  return `[${parserWorkerName}]: ${userMethodId} ${service} ${method}`;
 };
 
-export const upsertParserJobScheduler = async ({
-  methodName,
-  randomizeRecheckTime,
-  methodRecheckTime,
-  serviceName,
+const getIsHasJobForUserMethod = async ({
+  jobs,
+  userMethodId,
 }: {
-  methodRecheckTime: number | null;
-  randomizeRecheckTime: boolean;
+  jobs: Job<ServiceParserJobData, any, string>[];
+  userMethodId: number;
+}) => {
+  return jobs.some((job) => job.data.userMethodId === userMethodId);
+};
+
+export const addParserJob = async ({
+  userMethodId,
+  serviceName,
+  methodName,
+}: {
+  userMethodId: number;
   serviceName: string;
   methodName: string;
 }) => {
+  const userServiceMethod = await db.query.userServiceMethod.findFirst({
+    where: eq(schema.userServiceMethod.id, userMethodId),
+  });
+
+  if (!userServiceMethod) {
+    throw new Error("Failed to get userServiceMethod");
+  }
+
   const recheckTime = getMethodRecheckTime({
-    recheckTime: methodRecheckTime,
-    randomizeRecheckTime: Boolean(randomizeRecheckTime),
+    recheckTime: userServiceMethod.recheckTime,
+    randomizeRecheckTime: Boolean(userServiceMethod.randomizeRecheckTime),
   });
 
   if (!recheckTime || recheckTime < 1000) {
     throw new Error("Invalid recheck time");
   }
 
-  await parserQueue.upsertJobScheduler(
-    getJobSchedulerNameByService({
+  await parserQueue.add(
+    getJobParserName({
+      userMethodId,
       service: serviceName,
       method: methodName,
     }),
     {
-      every: recheckTime,
+      userMethodId,
+      methodName,
+      serviceName,
     },
     {
-      data: {
-        methodName,
-        serviceName,
-        methodRecheckTime,
-        randomizeRecheckTime,
-      },
-      name: serviceName,
+      delay: recheckTime,
     }
   );
+
+  logger.debug({
+    service: serviceName,
+    method: methodName,
+    status: "Initialized repeatable job",
+    recheckTime,
+  });
 
   return { recheckTime };
 };
@@ -103,25 +130,35 @@ const startRepeatableJobs = async () => {
       )
     );
 
+  const jobs = await parserQueue.getJobs([
+    "active",
+    "delayed",
+    "paused",
+    "wait",
+    "waiting",
+    "waiting-children",
+  ]);
+
   for (const activeMethod of activeMethods) {
     const { service, serviceMethod, userServiceMethod } = activeMethod;
+
+    const isHasJobForUserMethod = await getIsHasJobForUserMethod({
+      jobs,
+      userMethodId: userServiceMethod.id,
+    });
+
+    if (isHasJobForUserMethod) {
+      return;
+    }
 
     if (!service || !serviceMethod || !userServiceMethod.recheckTime) {
       return;
     }
 
-    const { recheckTime } = await upsertParserJobScheduler({
+    await addParserJob({
+      userMethodId: userServiceMethod.id,
       methodName: serviceMethod.name,
-      methodRecheckTime: userServiceMethod.recheckTime,
-      randomizeRecheckTime: Boolean(userServiceMethod.randomizeRecheckTime),
       serviceName: service.name,
-    });
-
-    logger.debug({
-      service: service.name,
-      method: serviceMethod.name,
-      status: "Initialized repeatable job",
-      recheckTime,
     });
   }
 };

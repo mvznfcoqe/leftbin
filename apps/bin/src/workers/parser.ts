@@ -1,30 +1,28 @@
+import { bot } from "@/bot";
+import { env } from "@/env";
+import { addParserJob } from "@/init";
+import { formatServiceMethodData } from "@/models/notifications";
+import {
+  getMethodFnByName,
+  getMethodNewData,
+  getMethodPreviousDataByLastId,
+  type ServiceResponse,
+} from "@/models/service";
+import { getCurrentUser } from "@/models/user";
+import { db, schema } from "@/schema";
 import { Job, Queue, Worker } from "bullmq";
+import { and, eq } from "drizzle-orm";
 import { launch } from "puppeteer-core";
 import { logger } from "..";
 import { connection } from "./connection";
-import { bot } from "@/bot";
-import { db, schema } from "@/schema";
-import { and, eq } from "drizzle-orm";
-import { formatServiceMethodData } from "@/models/notifications";
-import {
-  getMethodNewData,
-  type ServiceResponse,
-  getMethodFnByName,
-  getMethodPreviousDataByLastId,
-} from "@/models/service";
-import { getCurrentUser } from "@/models/user";
-import { env } from "@/env";
-import { upsertParserJobScheduler } from "@/init";
 
 export const parserWorkerName = "parserQueue";
 
 export type ServiceParserJobData = {
+  userMethodId: number;
   serviceName: string;
   methodName: string;
   query?: Record<string, string>;
-
-  methodRecheckTime: number | null;
-  randomizeRecheckTime: boolean;
 };
 
 export const parserQueue = new Queue<ServiceParserJobData>(parserWorkerName, {
@@ -192,50 +190,19 @@ ${formattedData}
 );
 
 parserWorker.on("completed", async (job) => {
-  if (job.data.methodRecheckTime) {
-    const { recheckTime } = await upsertParserJobScheduler({ ...job.data });
-
-    logger.debug({
-      jobId: job.id,
-      service: job.data.serviceName,
-      method: job.data.methodName,
-      recheckTime,
-    });
-  }
-
-  if (!job.returnvalue) {
-    logger.debug({
-      jobId: job.id,
-      service: job.data.serviceName,
-      method: job.data.methodName,
-      parsedItemsCount: 0,
-    });
-
-    return;
-  }
-
   logger.debug({
     jobId: job.id,
     service: job.data.serviceName,
     method: job.data.methodName,
-    parsedItemsCount: job.returnvalue.data.length,
+    parsedItemsCount: job.returnvalue ? job.returnvalue.data.length : 0,
   });
+
+  await addParserJob({ ...job.data });
 });
 
 parserWorker.on("failed", async (job, err) => {
   if (!job) {
     return;
-  }
-
-  if (job.data.methodRecheckTime) {
-    const { recheckTime } = await upsertParserJobScheduler({ ...job.data });
-
-    logger.debug({
-      jobId: job.id,
-      service: job.data.serviceName,
-      method: job.data.methodName,
-      recheckTime,
-    });
   }
 
   logger.debug({
