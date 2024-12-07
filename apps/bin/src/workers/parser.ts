@@ -19,9 +19,10 @@ import { connection } from "./connection";
 export const parserWorkerName = "parserQueue";
 
 export type ServiceParserJobData = {
-  userMethodId: number;
+  userMethodId?: number;
   serviceName: string;
   methodName: string;
+  repeat?: boolean;
   query?: Record<string, string>;
 };
 

@@ -1,11 +1,11 @@
-import { zValidator } from "@hono/zod-validator";
-import { Hono } from "hono";
-import { z } from "zod";
-import { eq } from "drizzle-orm";
-import { db, schema } from "../../schema";
-import { parserQueue, parserWorkerName } from "@/workers/parser";
 import { getMethodFnByName } from "@/models/service";
 import { getActiveMethods } from "@/models/services";
+import { parserQueue, parserWorkerName } from "@/workers/parser";
+import { zValidator } from "@hono/zod-validator";
+import { eq } from "drizzle-orm";
+import { Hono } from "hono";
+import { z } from "zod";
+import { db, schema } from "../../schema";
 
 const service = new Hono();
 
@@ -78,8 +78,8 @@ service.get(
 
     await parserQueue.add(parserWorkerName, {
       methodName: method,
-      query,
       serviceName: name,
+      query,
     });
 
     return ctx.json({}, { status: 201 });

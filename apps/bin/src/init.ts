@@ -29,10 +29,14 @@ const getJobParserName = ({
   service,
   userMethodId,
 }: {
-  userMethodId: number;
+  userMethodId?: number;
   service: string;
   method: string;
 }) => {
+  if (!userMethodId) {
+    return `[${parserWorkerName}]: ${service} ${method}`;
+  }
+
   return `[${parserWorkerName}]: ${userMethodId} ${service} ${method}`;
 };
 
@@ -51,10 +55,31 @@ export const addParserJob = async ({
   serviceName,
   methodName,
 }: {
-  userMethodId: number;
+  userMethodId?: number;
   serviceName: string;
   methodName: string;
 }) => {
+  if (!userMethodId) {
+    await parserQueue.add(
+      getJobParserName({
+        service: serviceName,
+        method: methodName,
+      }),
+      {
+        methodName,
+        serviceName,
+      }
+    );
+
+    logger.debug({
+      service: serviceName,
+      method: methodName,
+      status: "Initialized non-repeatable job",
+    });
+
+    return;
+  }
+
   const userServiceMethod = await db.query.userServiceMethod.findFirst({
     where: eq(schema.userServiceMethod.id, userMethodId),
   });
@@ -82,6 +107,7 @@ export const addParserJob = async ({
       userMethodId,
       methodName,
       serviceName,
+      repeat: true,
     },
     {
       delay: recheckTime,
@@ -94,8 +120,6 @@ export const addParserJob = async ({
     status: "Initialized repeatable job",
     recheckTime,
   });
-
-  return { recheckTime };
 };
 
 const startRepeatableJobs = async () => {
