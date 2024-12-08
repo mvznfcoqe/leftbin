@@ -1,4 +1,4 @@
-import { addService } from "@/models/lib/add";
+import { addService } from "../lib";
 import { info } from "./info";
 
 const init = async () => {
