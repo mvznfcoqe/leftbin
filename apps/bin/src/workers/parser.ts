@@ -10,7 +10,6 @@ import {
 } from "@/models/service";
 
 import { db, schema } from "@/schema";
-import { serviceMethod } from "@/schema/schema";
 import { Job, Queue, Worker } from "bullmq";
 import { and, eq } from "drizzle-orm";
 import { launch } from "puppeteer-core";
@@ -163,7 +162,7 @@ const notifyWorkerCompleted = async ({
     .findMany({
       where: and(
         eq(schema.serviceMethodField.serviceId, workerSuccessResult.service.id),
-        eq(schema.serviceMethodField.methodId, serviceMethod.id)
+        eq(schema.serviceMethodField.methodId, workerSuccessResult.method.id)
       ),
     })
     .then((fields) => {

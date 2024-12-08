@@ -1,7 +1,7 @@
 import { db, schema } from "@/schema";
-import { info } from "./info";
-import { getMethodInfo, sleep, type ServiceMethodFn } from "../lib";
 import { gotoTimeout } from "../config";
+import { getMethodInfo, sleep, type ServiceMethodFn } from "../lib";
+import { info } from "./info";
 
 type Vacancy = {
   id: string;

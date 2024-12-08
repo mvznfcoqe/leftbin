@@ -3,7 +3,7 @@ import { logger } from "@/logger";
 import IORedis from "ioredis";
 
 export const connection = new IORedis({
-  maxRetriesPerRequest: 0,
+  maxRetriesPerRequest: null,
   host: env.PARSER_REDIS_QUERY_HOST,
   port: env.PARSER_REDIS_QUERY_PORT,
 });

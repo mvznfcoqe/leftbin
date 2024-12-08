@@ -1,8 +1,8 @@
+import { logger } from "@/logger";
 import { db, schema } from "@/schema";
 import { gotoTimeout } from "../config";
 import { getMethodInfo, ServiceMethodFn, sleep } from "../lib";
 import { info } from "./info";
-import { logger } from "@/logger";
 
 const methodName = "up-resume";
 
@@ -60,7 +60,7 @@ const upResume: ServiceMethodFn<Params> = async ({ page }) => {
 
     return { data: [], insertedId: insertedData.id };
   } catch (e) {
-    console.log(e);
+    logger.error(e);
   }
 };
 
