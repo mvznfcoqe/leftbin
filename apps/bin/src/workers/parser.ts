@@ -1,16 +1,16 @@
-import { bot } from "@/bot";
 import { env } from "@/env";
 import { addParserJob } from "@/init";
 import { logger } from "@/logger";
-import { formatServiceMethodData } from "@/models/notifications";
+import { formatServiceMethodData, notify } from "@/models/notifications";
 import {
   getMethodFnByName,
   getMethodNewData,
   getMethodPreviousDataByLastId,
   type ServiceResponse,
 } from "@/models/service";
-import { getCurrentUser } from "@/models/user";
+
 import { db, schema } from "@/schema";
+import { serviceMethod } from "@/schema/schema";
 import { Job, Queue, Worker } from "bullmq";
 import { and, eq } from "drizzle-orm";
 import { launch } from "puppeteer-core";
@@ -30,42 +30,15 @@ export const parserQueue = new Queue<ServiceParserJobData>(parserWorkerName, {
   connection,
 });
 
-const getMethodData = async ({
-  serviceId,
-  methodId,
-  parsed,
-  notifyAbout,
-}: {
-  serviceId: typeof schema.service.$inferSelect.id;
-  methodId: typeof schema.serviceMethod.$inferSelect.id;
-  notifyAbout: typeof schema.userServiceMethod.$inferSelect.notifyAbout;
-  parsed: ServiceResponse;
-}) => {
-  if (!parsed) {
-    return [];
-  }
-
-  if (notifyAbout === "all") {
-    return parsed.data;
-  }
-
-  const previousData = await getMethodPreviousDataByLastId({
-    serviceId,
-    methodId,
-    lastInsertedId: parsed.insertedId,
-  });
-
-  const newData = getMethodNewData({
-    data: parsed.data,
-    previousData,
-  });
-
-  return newData;
+type WorkerSuccessResult = ServiceResponse & {
+  service: typeof schema.service.$inferSelect;
+  method: typeof schema.serviceMethod.$inferSelect;
+  userServiceMethod: typeof schema.userServiceMethod.$inferSelect;
 };
 
 export const parserWorker = new Worker(
   parserWorkerName,
-  async ({ data }: Job<ServiceParserJobData, ServiceResponse>) => {
+  async ({ data }: Job<ServiceParserJobData, WorkerSuccessResult>) => {
     const { methodName, query, serviceName } = data;
 
     const methodData = await db
@@ -134,54 +107,12 @@ export const parserWorker = new Worker(
       throw new Error(`Failed to parse data for ${serviceName}, ${methodName}`);
     }
 
-    const user = await getCurrentUser();
-
-    if (!user || !user.telegramId) {
-      return parsed;
-    }
-
-    const methodFields = await db.query.serviceMethodField
-      .findMany({
-        where: and(
-          eq(schema.serviceMethodField.serviceId, methodData.service.id),
-          eq(schema.serviceMethodField.methodId, methodData.serviceMethod.id)
-        ),
-      })
-      .then((fields) => {
-        return fields.map((field) => {
-          return { name: field.name, title: field.title };
-        });
-      });
-
-    const serviceDataForNotifications = await getMethodData({
-      methodId: methodData.serviceMethod.id,
-      serviceId: methodData.service.id,
-      notifyAbout: methodData.userServiceMethod.notifyAbout,
-      parsed,
-    });
-
-    if (!serviceDataForNotifications || !serviceDataForNotifications.length) {
-      return;
-    }
-
-    const formattedData = formatServiceMethodData({
-      data: serviceDataForNotifications,
-      method: {
-        title: methodData.serviceMethod.title,
-        name: methodData.serviceMethod.name,
-        fields: methodFields,
-      },
-    });
-
-    await bot.api.sendMessage(
-      user.telegramId,
-      `
-Сервис: ${methodData.service.title}
-${formattedData}
-`
-    );
-
-    return parsed;
+    return {
+      ...parsed,
+      service: methodData.service,
+      method: methodData.serviceMethod,
+      userServiceMethod: methodData.userServiceMethod,
+    };
   },
   {
     connection,
@@ -190,13 +121,97 @@ ${formattedData}
   }
 );
 
+const getMethodData = async ({
+  serviceId,
+  methodId,
+  parsed,
+  notifyAbout,
+}: {
+  serviceId: typeof schema.service.$inferSelect.id;
+  methodId: typeof schema.serviceMethod.$inferSelect.id;
+  notifyAbout: typeof schema.userServiceMethod.$inferSelect.notifyAbout;
+  parsed: ServiceResponse;
+}) => {
+  if (!parsed) {
+    return [];
+  }
+
+  if (notifyAbout === "all") {
+    return parsed.data;
+  }
+
+  const previousData = await getMethodPreviousDataByLastId({
+    serviceId,
+    methodId,
+    lastInsertedId: parsed.insertedId,
+  });
+
+  const newData = getMethodNewData({
+    data: parsed.data,
+    previousData,
+  });
+
+  return newData;
+};
+
+const notifyWorkerCompleted = async ({
+  workerSuccessResult,
+}: {
+  workerSuccessResult: WorkerSuccessResult;
+}) => {
+  const methodFields = await db.query.serviceMethodField
+    .findMany({
+      where: and(
+        eq(schema.serviceMethodField.serviceId, workerSuccessResult.service.id),
+        eq(schema.serviceMethodField.methodId, serviceMethod.id)
+      ),
+    })
+    .then((fields) => {
+      return fields.map((field) => {
+        return { name: field.name, title: field.title };
+      });
+    });
+
+  const serviceDataForNotifications = await getMethodData({
+    serviceId: workerSuccessResult.service.id,
+    methodId: workerSuccessResult.method.id,
+    notifyAbout: workerSuccessResult.userServiceMethod.notifyAbout,
+    parsed: {
+      data: workerSuccessResult.data,
+      insertedId: workerSuccessResult.insertedId,
+    },
+  });
+
+  const formattedData = formatServiceMethodData({
+    data: serviceDataForNotifications,
+    method: {
+      title: workerSuccessResult.method.title,
+      name: workerSuccessResult.method.name,
+      fields: methodFields,
+    },
+  });
+
+  await notify({
+    message: `
+Сервис: ${workerSuccessResult.service.name}
+${formattedData}
+`,
+  });
+};
+
 parserWorker.on("completed", async (job) => {
+  const workerSuccessResult = job.returnvalue;
+
   logger.debug({
     jobId: job.id,
     service: job.data.serviceName,
     method: job.data.methodName,
-    parsedItemsCount: job.returnvalue ? job.returnvalue.data.length : 0,
+    parsedItemsCount: workerSuccessResult ? workerSuccessResult.data.length : 0,
   });
+
+  if (workerSuccessResult) {
+    await notifyWorkerCompleted({ workerSuccessResult });
+  }
 
   if (job.data.repeat) {
     await addParserJob({ ...job.data });
@@ -214,5 +229,13 @@ parserWorker.on("failed", async (job, err) => {
     method: job.data.methodName,
     status: "Failed job",
     error: err.message,
+  });
+
+  await notify({
+    message: `
+Сервис: ${job.data.serviceName}
+Метод: ${job.data.methodName}
+Произошла ошибка во время выполнения сервиса, сервис остановлен
+  `,
   });
 });
