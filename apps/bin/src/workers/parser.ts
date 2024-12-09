@@ -192,7 +192,7 @@ const notifyWorkerCompleted = async ({
 
   await notify({
     message: `
-Сервис: ${workerSuccessResult.service.name}
+Service: ${workerSuccessResult.service.title}
 ${formattedData}
 `,
   });
@@ -232,9 +232,9 @@ parserWorker.on("failed", async (job, err) => {
 
   await notify({
     message: `
-Сервис: ${job.data.serviceName}
-Метод: ${job.data.methodName}
-Произошла ошибка во время выполнения сервиса, сервис остановлен
+Service: ${job.data.serviceName}
+Method: ${job.data.methodName}
+An error occurred during the service execution, and the service has been stopped.
   `,
   });
 });

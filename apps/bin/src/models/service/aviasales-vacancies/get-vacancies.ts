@@ -1,6 +1,8 @@
-import { db, schema } from "@/schema";
-import { gotoTimeout } from "../config";
-import { getMethodInfo, sleep, type ServiceMethodFn } from "../lib";
+import {
+  handleServiceMethodStarted,
+  handleServiceMethodSucced,
+  type ServiceMethodFn,
+} from "../lib";
 import { info } from "./info";
 
 type Vacancy = {
@@ -19,21 +21,15 @@ const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
   page,
   params,
 }) => {
-  const methodInfo = await getMethodInfo({
+  const { methodInfo } = await handleServiceMethodStarted({
     methodName,
     serviceName: info.name,
+    page,
   });
-
-  if (!methodInfo) {
-    throw new Error("Failed to get method info");
-  }
 
   const { method, service, baseUrl } = methodInfo;
 
   const vacancies: Vacancy[] = [];
-
-  await page.goto(baseUrl, { timeout: gotoTimeout });
-  await sleep(1000);
 
   const vacanciesContainer = await page.$(".vacancies");
 
@@ -71,20 +67,7 @@ const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
     vacancies.push({ id: vacancyId || name, name, url: vacancyUrl });
   }
 
-  await page.close();
-
-  const inserted = await db
-    .insert(schema.serviceData)
-    .values({
-      data: vacancies,
-      serviceId: service.id,
-      methodId: method.id,
-    })
-    .returning();
-
-  const insertedVacancies = inserted[0];
-
-  return { data: vacancies, insertedId: insertedVacancies.id };
+  return await handleServiceMethodSucced({ page, service, method, data: vacancies });
 };
 
 export { getVacancies, methodName };

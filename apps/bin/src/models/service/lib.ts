@@ -1,10 +1,12 @@
 import { env } from "@/env";
+import { logger } from "@/logger";
 import { db, schema } from "@/schema";
-import { defaultNotifyAbout } from "@/schema/schema";
+import { defaultNotifyAbout, service } from "@/schema/schema";
 import { and, eq } from "drizzle-orm";
 import type { Page } from "puppeteer-core";
 import { services } from ".";
 import { getCurrentUser } from "../user";
+import { gotoTimeout } from "./config";
 
 export type ServiceField = {
   title: string;
@@ -201,7 +203,7 @@ const getMethodInfo = async ({
   return { service, method, baseUrl };
 };
 
-export const sleep = (ms: number) => {
+const sleep = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
@@ -260,6 +262,59 @@ const addService = async ({
   }
 };
 
+export const handleServiceMethodStarted = async ({
+  page,
+  serviceName,
+  methodName,
+}: {
+  serviceName: string;
+  methodName: string;
+  page: Page;
+}) => {
+  const methodInfo = await getMethodInfo({
+    methodName: methodName,
+    serviceName: serviceName,
+  });
+
+  if (!methodInfo) {
+    throw new Error(
+      `Failed to get method info for service: ${serviceName}, method: ${methodName}`
+    );
+  }
+
+  logger.info(`Service: ${service}, Method: ${methodName} started`);
+
+  await page.goto(methodInfo.baseUrl, { timeout: gotoTimeout });
+  await sleep(1000);
+
+  return { methodInfo };
+};
+
+export const handleServiceMethodSucced = async <T extends ServiceMethodData>({
+  page,
+  service,
+  method,
+  data,
+}: {
+  service: typeof schema.service.$inferSelect;
+  method: typeof schema.serviceMethod.$inferSelect;
+  data: T;
+  page: Page;
+}) => {
+  await page.close();
+
+  const inserted = await db
+    .insert(schema.serviceData)
+    .values({ serviceId: service.id, methodId: method.id, data })
+    .returning();
+
+  const insertedData = inserted[0];
+
+  logger.info(`Service: ${service.title}, Method: ${method.title} succed`);
+
+  return { data, insertedId: insertedData.id };
+};
+
 export {
   adaptServiceMethods,
   addService,
@@ -268,4 +323,5 @@ export {
   getMethodNewData,
   getMethodPreviousDataByLastId,
   getMethodRecheckTime,
+  sleep,
 };

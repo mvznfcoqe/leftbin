@@ -1,7 +1,10 @@
 import { logger } from "@/logger";
-import { db, schema } from "@/schema";
-import { gotoTimeout } from "../config";
-import { getMethodInfo, ServiceMethodFn, sleep } from "../lib";
+import {
+  handleServiceMethodStarted,
+  handleServiceMethodSucced,
+  ServiceMethodFn,
+  sleep,
+} from "../lib";
 import { info } from "./info";
 
 const methodName = "up-resume";
@@ -14,24 +17,16 @@ const upResumeButtonName = "Поднять в поиске";
 
 const upResume: ServiceMethodFn<Params> = async ({ page }) => {
   try {
-    const methodInfo = await getMethodInfo({
+    const { methodInfo } = await handleServiceMethodStarted({
       methodName,
       serviceName: info.name,
+      page,
     });
 
-    if (!methodInfo) {
-      throw new Error("Failed to get method info");
-    }
-
-    const { method, service, baseUrl } = methodInfo;
-
-    await page.goto(baseUrl, { timeout: gotoTimeout });
-    await sleep(1000);
-    logger.debug("[up-resume]: Page Opened");
+    const { method, service } = methodInfo;
 
     await page.waitForSelector('div[data-qa="resume"]');
     const resumes = await page.$$('div[data-qa="resume"]');
-    logger.debug("[up-resume]: Resumes collected");
 
     for (const resume of resumes) {
       const upButton = await resume.$(
@@ -39,26 +34,14 @@ const upResume: ServiceMethodFn<Params> = async ({ page }) => {
       );
 
       if (!upButton) {
-        logger.warn("[up-resume]: Resume update button was not found");
         continue;
       }
 
       await upButton.click();
       await sleep(1500);
-      logger.debug("[up-resume]: Resume update button clicked");
     }
 
-    await page.close();
-    logger.debug("[up-resume]: Page Closed");
-
-    const inserted = await db
-      .insert(schema.serviceData)
-      .values({ serviceId: service.id, methodId: method.id, data: [] })
-      .returning();
-
-    const insertedData = inserted[0];
-
-    return { data: [], insertedId: insertedData.id };
+    return await handleServiceMethodSucced({ page, service, method, data: [] });
   } catch (e) {
     logger.error(e);
   }
