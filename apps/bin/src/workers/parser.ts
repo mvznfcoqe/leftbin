@@ -153,8 +153,11 @@ const getMethodData = async ({
   }
 
   if (notifyAbout === "all") {
+    console.log(parsed.data);
     return parsed.data;
   }
+
+  console.log(notifyAbout);
 
   const previousData = await getMethodPreviousDataByLastId({
     serviceId,
@@ -189,10 +192,6 @@ const notifyWorkerCompleted = async ({
         return { name: field.name, title: field.title };
       });
     });
-
-  if (service.id === 2) {
-    logger.debug(workerSuccessResult);
-  }
 
   const serviceDataForNotifications = await getMethodData({
     serviceId: service.id,

@@ -24,7 +24,7 @@ const upResumeMethodAction: ServiceMethodAction<Params> = async ({ page }) => {
     const upButton = await resume.$(
       `::-p-xpath(//*[text()[contains(., "${upResumeButtonName}")]])`
     );
-    const resumeTitle = await resume.$eval("[data-qa=title]", (title) => {
+    const resumeTitle = await resume.$eval("[data-qa=title]", (title: { innerText: any; }) => {
       return title.innerText;
     });
 
