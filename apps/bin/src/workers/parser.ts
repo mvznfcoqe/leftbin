@@ -173,6 +173,10 @@ const notifyWorkerCompleted = async ({
       });
     });
 
+  if (service.id === 2) {
+    logger.debug(workerSuccessResult);
+  }
+
   const serviceDataForNotifications = await getMethodData({
     serviceId: service.id,
     methodId: method.id,
