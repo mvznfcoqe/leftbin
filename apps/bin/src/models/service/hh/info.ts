@@ -1,23 +1,33 @@
 import type { Service } from "../lib";
-import { upResume, methodName as upResumeMethodName } from "./up-resume";
+import { serviceName } from "./config";
+import {
+  upResumeMethod,
+  methodName as upResumeMethodName,
+} from "./methods/up-resume";
 
 const info: Service["info"] = {
-  name: "hh",
+  name: serviceName,
   title: "hh.ru",
   baseUrl: "https://hh.ru",
   methods: [
     {
       name: upResumeMethodName,
       title: "Поднятие резюме",
-      fields: [],
-      fn: upResume,
+      fields: [{ title: "Название резюме", name: "title" }],
+      fn: upResumeMethod,
       baseUrl: "/applicant/resumes",
+      notifyAbout: 'all',
       parameters: [
-        { name: "resumeName", title: "Название резюме", required: false },
+        {
+          name: "resumeName",
+          title: "Название резюме",
+          required: false,
+          description: null,
+        },
       ],
       recheckTime: 14400000,
     },
   ],
 };
 
-export { info };
+export { info, serviceName };

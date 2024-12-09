@@ -1,9 +1,5 @@
-import {
-  handleServiceMethodStarted,
-  handleServiceMethodSucced,
-  type ServiceMethodFn,
-} from "../lib";
-import { info } from "./info";
+import { createServiceMethodFn, ServiceMethodAction } from "../../lib";
+import { serviceName } from "../info";
 
 type Vacancy = {
   id: string;
@@ -17,22 +13,16 @@ type Params = {
 
 const methodName = "get-vacancies";
 
-const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
+const getVacanciesAction: ServiceMethodAction<Params> = async ({
   page,
   params,
+  service,
 }) => {
-  const { methodInfo } = await handleServiceMethodStarted({
-    methodName,
-    serviceName: info.name,
-    page,
-  });
-
-  const { method, service, baseUrl } = methodInfo;
+  const baseUrl = service.baseUrl;
 
   const vacancies: Vacancy[] = [];
 
   const vacanciesContainer = await page.$(".vacancies");
-
   if (!vacanciesContainer) {
     throw new Error("Failed to find vacanciesContainer");
   }
@@ -53,10 +43,10 @@ const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
 
     const isDataInvalid = !name || !url;
     if (isDataInvalid) {
-      break;
+      continue;
     }
     if (params && params.nameIncludes && !name.includes(params.nameIncludes)) {
-      break;
+      continue;
     }
 
     const base = new URL(baseUrl).origin;
@@ -67,7 +57,17 @@ const getVacancies: ServiceMethodFn<Params, Vacancy[]> = async ({
     vacancies.push({ id: vacancyId || name, name, url: vacancyUrl });
   }
 
-  return await handleServiceMethodSucced({ page, service, method, data: vacancies });
+  return {
+    data: vacancies,
+    message: "Вакансии успешно получены",
+    status: "success",
+  };
 };
 
-export { getVacancies, methodName };
+const getVacanciesMethod = createServiceMethodFn({
+  methodName,
+  serviceName,
+  fn: getVacanciesAction,
+});
+
+export { getVacanciesMethod, methodName };

@@ -1,7 +1,7 @@
 import { env } from "@/env";
 import { logger } from "@/logger";
 import { db, schema } from "@/schema";
-import { defaultNotifyAbout, service } from "@/schema/schema";
+import { defaultNotifyAbout } from "@/schema/schema";
 import { and, eq } from "drizzle-orm";
 import type { Page } from "puppeteer-core";
 import { services } from ".";
@@ -13,23 +13,34 @@ export type ServiceField = {
   name: string;
 };
 
-export type ServiceParameter = {
-  name: string;
-  title: string;
-  required: boolean;
-  description?: string;
-};
+export type ServiceMethodParameter = string | number;
+
+export type ServiceMethodParameters = Record<string, ServiceMethodParameter>;
 
 export type ServiceMethodData = {
   id: string | number;
   [x: string]: string | number;
 }[];
 
+export type ServiceMethodActionResult<D = ServiceMethodData> = {
+  data: D;
+  message: string;
+  status: "success" | "failure";
+};
+
+export type ServiceMethodAction<P = ServiceMethodParameters> = (params: {
+  page: Page;
+  service: typeof schema.service.$inferSelect;
+  method: typeof schema.serviceMethod.$inferSelect;
+  params?: P;
+}) => Promise<ServiceMethodActionResult>;
+
 export type ServiceResponse<D = ServiceMethodData> =
-  | { data: D; insertedId: number }
+  | ({ insertedId: number } & ServiceMethodActionResult<D>)
   | undefined;
+
 export type ServiceMethodFn<
-  P = Record<string, unknown>,
+  P = ServiceMethodParameters,
   D = ServiceMethodData,
 > = (params: { page: Page; params?: P }) => Promise<ServiceResponse<D>>;
 
@@ -41,8 +52,12 @@ export type ServiceMethod = {
   isCookiesRequired?: boolean;
   fields: ServiceField[];
   fn: ServiceMethodFn;
+  notifyAbout?: typeof schema.userServiceMethod.$inferSelect.notifyAbout;
 
-  parameters: ServiceParameter[];
+  parameters: Omit<
+    typeof schema.serviceMethodParameter.$inferSelect,
+    "createdAt" | "updatedAt" | "serviceId" | "methodId" | "id"
+  >[];
 };
 
 export type Service = {
@@ -75,7 +90,7 @@ const getMethodRecheckTime = ({
 
   const step = time * 0.5;
 
-  return time + Math.floor(Math.random() * (2 * step + 1)) - step;
+  return time + Math.floor(Math.random() * step);
 };
 
 const getMethodNewData = ({
@@ -254,7 +269,7 @@ const addService = async ({
       active: true,
       serviceId: insertedService.id,
       methodId: insertedMethod.id,
-      notifyAbout: defaultNotifyAbout,
+      notifyAbout: method.notifyAbout || defaultNotifyAbout,
       userId: user.id,
       recheckTime: method.recheckTime,
       randomizeRecheckTime: true,
@@ -278,11 +293,13 @@ export const handleServiceMethodStarted = async ({
 
   if (!methodInfo) {
     throw new Error(
-      `Failed to get method info for service: ${serviceName}, method: ${methodName}`
+      `Failed to get method info for service: "${serviceName}", method: "${methodName}"`
     );
   }
 
-  logger.info(`Service: ${service}, Method: ${methodName} started`);
+  logger.info(
+    `Service: "${methodInfo.service.title}", Method: "${methodInfo.method.title}" started`
+  );
 
   await page.goto(methodInfo.baseUrl, { timeout: gotoTimeout });
   await sleep(1000);
@@ -290,34 +307,88 @@ export const handleServiceMethodStarted = async ({
   return { methodInfo };
 };
 
-export const handleServiceMethodSucced = async <T extends ServiceMethodData>({
+export const handleServiceMethodSucced = async <
+  T extends ServiceMethodActionResult,
+>({
   page,
   service,
   method,
-  data,
+  result,
 }: {
   service: typeof schema.service.$inferSelect;
   method: typeof schema.serviceMethod.$inferSelect;
-  data: T;
+  result: T;
   page: Page;
 }) => {
   await page.close();
 
+  if (!result.data) {
+    return;
+  }
+
   const inserted = await db
     .insert(schema.serviceData)
-    .values({ serviceId: service.id, methodId: method.id, data })
+    .values({ serviceId: service.id, methodId: method.id, data: result.data })
     .returning();
 
   const insertedData = inserted[0];
 
-  logger.info(`Service: ${service.title}, Method: ${method.title} succed`);
+  logger.info(
+    `Service: "${service.title}", Method: "${method.title}" succed with message: ${result.message}`
+  );
 
-  return { data, insertedId: insertedData.id };
+  return {
+    ...result,
+    insertedId: insertedData.id,
+  };
+};
+
+const createServiceMethodFn = <P = ServiceMethodParameters>({
+  serviceName,
+  methodName,
+  fn,
+}: {
+  serviceName: string;
+  methodName: string;
+  fn: ServiceMethodAction<P>;
+}): ServiceMethodFn<P> => {
+  return async ({ page, params }) => {
+    try {
+      const { methodInfo } = await handleServiceMethodStarted({
+        page,
+        methodName,
+        serviceName,
+      });
+
+      const { service, method } = methodInfo;
+
+      const result = await fn({
+        page,
+        service,
+        method,
+        params,
+      });
+
+      if (!result) {
+        return;
+      }
+
+      return await handleServiceMethodSucced({
+        page,
+        service,
+        method,
+        result,
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
 };
 
 export {
   adaptServiceMethods,
   addService,
+  createServiceMethodFn,
   getMethodFnByName,
   getMethodInfo,
   getMethodNewData,

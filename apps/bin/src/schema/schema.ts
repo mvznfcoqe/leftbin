@@ -90,6 +90,7 @@ const serviceMethodParameter = sqliteTable("service_method_parameter", {
   id: integer({ mode: "number" }).primaryKey({ autoIncrement: true }),
   name: text("name").notNull().unique(),
   title: text("title").notNull(),
+  required: integer("required", { mode: "boolean" }),
   description: text("description"),
 
   serviceId: integer("service_id")

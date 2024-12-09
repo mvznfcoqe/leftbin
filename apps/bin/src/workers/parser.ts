@@ -100,14 +100,14 @@ export const parserWorker = new Worker(
       )
     );
 
-    const parsed = await methodFn({ page, params: query });
+    const result = await methodFn({ page, params: query });
 
-    if (!parsed?.data) {
+    if (!result?.data) {
       throw new Error(`Failed to parse data for ${serviceName}, ${methodName}`);
     }
 
     return {
-      ...parsed,
+      ...result,
       service: methodData.service,
       method: methodData.serviceMethod,
       userServiceMethod: methodData.userServiceMethod,
@@ -158,11 +158,13 @@ const notifyWorkerCompleted = async ({
 }: {
   workerSuccessResult: WorkerSuccessResult;
 }) => {
+  const { message, method, service, userServiceMethod } = workerSuccessResult;
+
   const methodFields = await db.query.serviceMethodField
     .findMany({
       where: and(
-        eq(schema.serviceMethodField.serviceId, workerSuccessResult.service.id),
-        eq(schema.serviceMethodField.methodId, workerSuccessResult.method.id)
+        eq(schema.serviceMethodField.serviceId, service.id),
+        eq(schema.serviceMethodField.methodId, method.id)
       ),
     })
     .then((fields) => {
@@ -172,27 +174,28 @@ const notifyWorkerCompleted = async ({
     });
 
   const serviceDataForNotifications = await getMethodData({
-    serviceId: workerSuccessResult.service.id,
-    methodId: workerSuccessResult.method.id,
-    notifyAbout: workerSuccessResult.userServiceMethod.notifyAbout,
+    serviceId: service.id,
+    methodId: method.id,
+    notifyAbout: userServiceMethod.notifyAbout,
     parsed: {
-      data: workerSuccessResult.data,
-      insertedId: workerSuccessResult.insertedId,
+      ...workerSuccessResult,
     },
   });
 
   const formattedData = formatServiceMethodData({
     data: serviceDataForNotifications,
     method: {
-      title: workerSuccessResult.method.title,
-      name: workerSuccessResult.method.name,
+      title: method.title,
+      name: method.name,
       fields: methodFields,
     },
   });
 
   await notify({
     message: `
-Service: ${workerSuccessResult.service.title}
+Service: ${service.title}
+Method: ${method.title}
+${message}
 ${formattedData}
 `,
   });

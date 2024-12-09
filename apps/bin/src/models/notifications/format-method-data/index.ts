@@ -26,7 +26,6 @@ const formatServiceMethodData = ({
   });
 
   return `
-${method.title}
 ${formattedFields.join("\n\n")}
 `.trim();
 };

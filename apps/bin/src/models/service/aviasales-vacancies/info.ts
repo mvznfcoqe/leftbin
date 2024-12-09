@@ -1,11 +1,12 @@
 import type { Service } from "../lib";
+import { serviceName } from "./config";
 import {
-  getVacancies,
+  getVacanciesMethod,
   methodName as getVacanciesMethodName,
-} from "./get-vacancies";
+} from "./methods/get-vacancies";
 
 const info: Service["info"] = {
-  name: "aviasales-vacancies",
+  name: serviceName,
   title: "Вакансии Aviasales",
   baseUrl: "https://www.aviasales.ru/about/vacancies",
   methods: [
@@ -17,10 +18,10 @@ const info: Service["info"] = {
         { title: "Ссылка", name: "url" },
       ],
       recheckTime: 43200000,
-      fn: getVacancies,
-      parameters: [{ name: "", title: "", required: false }],
+      fn: getVacanciesMethod,
+      parameters: [{ name: "", title: "", required: false, description: null }],
     },
   ],
 };
 
-export { info };
+export { info, serviceName };
