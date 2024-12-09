@@ -18,6 +18,7 @@ const info: Service["info"] = {
         { title: "Ссылка", name: "url" },
       ],
       recheckTime: 43200000,
+      notifyAbout: "new",
       fn: getVacanciesMethod,
       parameters: [{ name: "", title: "", required: false, description: null }],
     },
