@@ -12,7 +12,8 @@ import {
 import { db, schema } from "@/schema";
 import { Job, Queue, Worker } from "bullmq";
 import { and, eq } from "drizzle-orm";
-import { launch } from "puppeteer-core";
+import { launch } from "rebrowser-puppeteer-core";
+import UserAgent from "user-agents";
 import { connection } from "./connection";
 
 export const parserWorkerName = "parserQueue";
@@ -76,17 +77,31 @@ export const parserWorker = new Worker(
       throw new Error(`Failed to find fn for ${serviceName}, ${methodName}`);
     }
 
+    const userAgent = new UserAgent({ deviceCategory: "desktop" }).random();
+
     const browser = await launch({
       executablePath: env.CHROME_EXECUTABLE,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        `--user-agent=${userAgent.toString()}`,
+        "--disable-blink-features=AutomationControlled",
+        "--start-maximized",
+      ],
+      ignoreDefaultArgs: ["--enable-automation"],
+      defaultViewport: {
+        height: userAgent.data.screenHeight,
+        width: userAgent.data.screenWidth,
+      },
     });
+
     const page = await browser.newPage();
 
     const serviceCookies = await db.query.cookie.findMany({
       where: eq(schema.cookie.serviceId, methodData.service.id),
     });
 
-    await page.setCookie(
+    await browser.setCookie(
       ...serviceCookies.map(
         ({ name, domain, expires, httpOnly, path, secure, value }) => ({
           name,
@@ -96,6 +111,8 @@ export const parserWorker = new Worker(
           httpOnly: Boolean(httpOnly),
           path,
           secure: Boolean(secure),
+          size: 200,
+          session: false,
         })
       )
     );
