@@ -3,7 +3,7 @@ import { logger } from "@/logger";
 import { db, schema } from "@/schema";
 import { defaultNotifyAbout } from "@/schema/schema";
 import { and, eq } from "drizzle-orm";
-import type { Page } from "puppeteer-core";
+import type { Page } from "rebrowser-puppeteer-core";
 import { services } from ".";
 import { getCurrentUser } from "../user";
 import { gotoTimeout } from "./config";
@@ -90,7 +90,7 @@ const getMethodRecheckTime = ({
 
   const step = time * 0.5;
 
-  return time + Math.floor(Math.random() * step);
+  return time + Math.floor(Math.random() * (2 * step + 1)) - step;
 };
 
 const getMethodNewData = ({

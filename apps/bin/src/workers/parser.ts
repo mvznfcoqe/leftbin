@@ -157,8 +157,6 @@ const getMethodData = async ({
     return parsed.data;
   }
 
-  console.log(notifyAbout);
-
   const previousData = await getMethodPreviousDataByLastId({
     serviceId,
     methodId,
