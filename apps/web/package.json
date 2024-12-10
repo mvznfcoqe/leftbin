@@ -5,16 +5,19 @@
   "type": "module",
   "scripts": {
     "start:dev": "vite",
-    "start:build": "run-p type-check \"build-only {@}\" --",
     "start:preview": "vite preview",
-    "build-only": "vite build",
-    "type-check": "vue-tsc --build"
+    "start:build": "vite build",
+    "generate-env-js": "runtime-env gen-js --output-file src/shared/config/env/runtime-env.js",
+    "generate-env-ts": "runtime-env gen-ts --output-file src/shared/config/env/runtime-env.ts",
+    "generate-env": "run-p generate-env-js generate-env-ts"
   },
   "dependencies": {
+    "runtime-env": "^1.3.0",
     "vue": "^3.5.13",
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
+    "@runtime-env/cli": "^0.7.0",
     "@tsconfig/node22": "^22.0.0",
     "@types/node": "^22.9.3",
     "@vitejs/plugin-vue": "^5.2.1",

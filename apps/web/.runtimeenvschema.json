@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "PORT": {
+      "type": "number"
+    }
+  },
+  "required": []
+}
