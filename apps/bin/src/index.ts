@@ -1,27 +1,25 @@
-import { Hono } from "hono";
-
 import { eq } from "drizzle-orm";
+import { migrate } from "drizzle-orm/bun-sqlite/migrator";
+import { Elysia } from "elysia";
 import { env } from "./env";
 import { init, startRepeatableJobs } from "./init";
+import { logger } from "./logger";
 import { check } from "./routes/check";
+import { notifications } from "./routes/notifications";
 import { service } from "./routes/service";
 import { db, schema } from "./schema";
-
-import { serve } from "@hono/node-server";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { logger } from "./logger";
-import { notifications } from "./routes/notifications";
+import swagger from "@elysiajs/swagger";
 
 if (!env.AUTH_TOKEN) {
   throw Error("Auth token wasn't specified");
 }
 
-const app = new Hono({}).basePath("/api");
-
-app.route("/", check);
-app.route("/check", check);
-app.route("/service", service);
-app.route("/notifications", notifications);
+new Elysia({ prefix: "/api" })
+  .use(swagger())
+  .use(check)
+  .use(service)
+  .use(notifications)
+  .listen(env.PORT);
 
 if (env.MIGRATE) {
   logger.info("Database migration started");
@@ -52,5 +50,3 @@ logger.info(
     Replace 127.0.0.1:${env.PORT} with your domain name.
   `
 );
-
-serve({ port: env.PORT, hostname: env.HOSTNAME, fetch: app.fetch });

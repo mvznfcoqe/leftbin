@@ -1,8 +1,10 @@
-import { Hono } from "hono";
+import Elysia from "elysia";
 import { telegram } from "./telegram";
 
-const notifications = new Hono();
-
-notifications.route("/telegram", telegram);
+const notifications = new Elysia({
+  prefix: "/notifications",
+  name: "notifications",
+  tags: ["notifications"],
+}).use(telegram);
 
 export { notifications };

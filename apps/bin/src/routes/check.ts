@@ -1,9 +1,9 @@
-import { Hono } from "hono";
+import Elysia from "elysia";
 
-export const check = new Hono();
-
-check.get("/", (ctx) => {
-  return ctx.json({
-    ok: true,
-  });
+export const check = new Elysia({
+  name: "check",
+  tags: ["check"],
+  prefix: "/check",
+}).get("/", () => {
+  return { ok: true };
 });

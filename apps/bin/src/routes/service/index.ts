@@ -1,71 +1,47 @@
 import { getMethodFnByName } from "@/models/service";
-import { getActiveMethods } from "@/models/services";
 import { parserQueue, parserWorkerName } from "@/workers/parser";
-import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
-import { Hono } from "hono";
-import { z } from "zod";
+import Elysia, { t } from "elysia";
 import { db, schema } from "../../schema";
 
-const service = new Hono();
+const service = new Elysia({ prefix: "/service", name: 'service', tags: ["service"] })
+  .post(
+    "/cookies/:serviceId",
+    async ({ params, body, set }) => {
+      const cookies = body.cookies.map((cookie) => {
+        return { ...cookie, serviceId: Number(params.serviceId) };
+      });
 
-const addCookiesDTO = z.object({
-  cookies: z.array(
-    z.object({
-      name: z.string().min(1),
-      value: z.string().min(1),
-      domain: z.string().min(1),
-      path: z.string().min(1),
-      expires: z.coerce.number(),
-      httpOnly: z.boolean(),
-      secure: z.boolean(),
-    })
-  ),
-});
+      await db.insert(schema.cookie).values(cookies);
 
-service.post(
-  "/:serviceId/cookies",
-  zValidator("json", addCookiesDTO),
-  async (ctx) => {
-    const validated = ctx.req.valid("json");
-    const serviceId = ctx.req.param("serviceId");
+      set.status = 201;
+      return {};
+    },
+    {
+      body: t.Object({
+        cookies: t.Array(
+          t.Object({
+            name: t.String({ minLength: 1 }),
+            value: t.String({ minLength: 1 }),
+            domain: t.String({ minLength: 1 }),
+            path: t.String({ minLength: 1 }),
+            expires: t.Number(),
+            httpOnly: t.Boolean(),
+            secure: t.Boolean(),
+          })
+        ),
+      }),
+    }
+  )
+  .delete("/cookies/:serviceId", async ({ params }) => {
+    await db
+      .delete(schema.cookie)
+      .where(eq(schema.cookie.serviceId, Number(params.serviceId)));
 
-    const cookies = validated.cookies.map((cookie) => {
-      return { ...cookie, serviceId: Number(serviceId) };
-    });
-
-    await db.insert(schema.cookie).values(cookies);
-
-    return ctx.json({}, 201);
-  }
-);
-
-service.delete("/:serviceId/cookies", async (ctx) => {
-  const serviceId = ctx.req.param("serviceId");
-
-  await db
-    .delete(schema.cookie)
-    .where(eq(schema.cookie.serviceId, Number(serviceId)));
-
-  return ctx.json({}, 200);
-});
-
-service.get("/active-methods", async (ctx) => {
-  const activeMethods = await getActiveMethods();
-
-  return ctx.json(activeMethods);
-});
-
-const serviceMethodParamsDTO = z.record(z.string(), z.string());
-
-service.get(
-  "/:name/:method",
-  zValidator("query", serviceMethodParamsDTO),
-  async (ctx) => {
-    const query = ctx.req.valid("query");
-
-    const name = ctx.req.param("name");
-    const method = ctx.req.param("method");
+    return {};
+  })
+  .post("/:name/:method", async ({ params, query, error, set }) => {
+    const { method, name } = params;
 
     const methodFn = await getMethodFnByName({
       serviceName: name,
@@ -73,7 +49,7 @@ service.get(
     });
 
     if (!methodFn) {
-      return ctx.json({}, { status: 404 });
+      return error(404, {});
     }
 
     await parserQueue.add(parserWorkerName, {
@@ -82,8 +58,8 @@ service.get(
       query,
     });
 
-    return ctx.json({}, { status: 201 });
-  }
-);
+    set.status = 201;
+    return {};
+  });
 
 export { service };

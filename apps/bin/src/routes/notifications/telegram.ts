@@ -1,32 +1,31 @@
 import { getCurrentUser } from "@/models/user";
 import { db, schema } from "@/schema";
-import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
-import { Hono } from "hono";
-import { z } from "zod";
+import Elysia, { t } from "elysia";
 
-const telegram = new Hono();
+const telegram = new Elysia({ prefix: "/telegram", }).post(
+  "/setup",
+  async ({ body, error, set }) => {
+    const user = await getCurrentUser();
 
-const setupTelegramDTO = z.object({
-  telegramId: z.number().min(1),
-});
+    if (!user) {
+      return error(403, {});
+    }
 
-telegram.post("/setup", zValidator("json", setupTelegramDTO), async (ctx) => {
-  const { telegramId } = ctx.req.valid("json");
+    await db
+      .update(schema.user)
+      .set({ telegramId: body.telegramId.toString() })
+      .where(eq(schema.user.name, user?.name))
+      .returning();
 
-  const user = await getCurrentUser();
-
-  if (!user) {
-    return ctx.json({}, 403);
+    set.status = 201;
+    return {};
+  },
+  {
+    body: t.Object({
+      telegramId: t.Number({ minimum: 1 }),
+    }),
   }
-
-  await db
-    .update(schema.user)
-    .set({ telegramId: telegramId.toString() })
-    .where(eq(schema.user.name, user?.name))
-    .returning();
-
-  return ctx.json({}, 201);
-});
+);
 
 export { telegram };

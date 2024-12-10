@@ -7,7 +7,7 @@ import { getInitialSession } from "./lib/session";
 import { conversations } from "@grammyjs/conversations";
 import { conversationHandlers } from "./conversations";
 import { db } from "./schema";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 import pino from "pino";
 
 export const logger = pino({ level: "debug" });

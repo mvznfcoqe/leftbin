@@ -1,4 +1,4 @@
-FROM node:latest AS app
+FROM oven/bun:latest AS app
 
 RUN apt-get update && apt-get install curl gnupg -y 
 RUN curl --location --silent https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - 
@@ -9,11 +9,11 @@ RUN rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY . .
-RUN npm install
+RUN bun install
 
 WORKDIR /app/apps/bin
 
 ENV PORT=9001
 EXPOSE 9001
 
-CMD ["npm", "run", "start:prod"]
+CMD ["bun", "run", "start:prod"]

@@ -1,6 +1,5 @@
 import type { ServiceMethod } from "@/models/service/lib";
-import { describe, it } from "node:test";
-import { equal } from "node:assert";
+import { describe, expect, it } from "bun:test";
 import { formatServiceMethodData } from ".";
 
 const formattedServiceData = `
@@ -32,6 +31,6 @@ describe("formatServiceMethodData should", () => {
       data: serviceData,
     });
 
-    equal(formattedData, formattedServiceData);
+    expect(formattedData).toBe(formattedServiceData);
   });
 });

@@ -1,10 +1,10 @@
-FROM node:latest
+FROM oven/bun:latest
 
 WORKDIR /app
 COPY . .
 
-RUN npm install
+RUN bun install
 
 WORKDIR /app/apps/telegram-bot
 
-CMD ["npm", "run", "start:prod"]
+CMD ["bun", "run", "start:prod"]

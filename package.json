@@ -1,16 +1,16 @@
 {
   "name": "leftbin",
   "module": "index.ts",
-  "type": "module",
-  "workspaces": [
-    "apps/*"
-  ],
-  "scripts": {},
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
   "devDependencies": {
     "@types/node": "^22.9.0",
     "prettier": "^3.4.2"
-  }
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {},
+  "type": "module",
+  "workspaces": [
+    "apps/*"
+  ]
 }

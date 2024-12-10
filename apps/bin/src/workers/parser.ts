@@ -23,7 +23,7 @@ export type ServiceParserJobData = {
   serviceName: string;
   methodName: string;
   repeat?: boolean;
-  query?: Record<string, string>;
+  query?: Record<string, string | undefined>;
 };
 
 export const parserQueue = new Queue<ServiceParserJobData>(parserWorkerName, {

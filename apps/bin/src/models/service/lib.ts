@@ -13,7 +13,7 @@ export type ServiceField = {
   name: string;
 };
 
-export type ServiceMethodParameter = string | number;
+export type ServiceMethodParameter = string | number | undefined;
 
 export type ServiceMethodParameters = Record<string, ServiceMethodParameter>;
 
