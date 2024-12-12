@@ -4,9 +4,10 @@ import { Elysia } from "elysia";
 import { env } from "./env";
 import { init, startRepeatableJobs } from "./init";
 import { logger } from "./logger";
-import { check } from "./routes/check";
-import { notifications } from "./routes/notifications";
-import { service } from "./routes/service";
+import { checkRoute } from "./routes/check";
+import { notificationsRoute } from "./routes/notifications";
+import { serviceRoute } from "./routes/service";
+import { servicesRoute } from "./routes/services";
 import { db, schema } from "./schema";
 import swagger from "@elysiajs/swagger";
 
@@ -14,11 +15,12 @@ if (!env.AUTH_TOKEN) {
   throw Error("Auth token wasn't specified");
 }
 
-new Elysia({ prefix: "/api" })
-  .use(swagger())
-  .use(check)
-  .use(service)
-  .use(notifications)
+new Elysia()
+  .use(swagger({ provider: "swagger-ui" }))
+  .use(checkRoute)
+  .use(serviceRoute)
+  .use(servicesRoute)
+  .use(notificationsRoute)
   .listen(env.PORT);
 
 if (env.MIGRATE) {
@@ -38,7 +40,9 @@ try {
     logger.info(`Bin initialized with name "${env.NAME}"`);
   }
 
-  await startRepeatableJobs();
+  if (env.START_ALL_USER_METHODS) {
+    await startRepeatableJobs();
+  }
 } catch (e) {
   logger.error(e);
 }

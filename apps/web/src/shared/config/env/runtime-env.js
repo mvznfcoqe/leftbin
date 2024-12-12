@@ -2,4 +2,5 @@
 
 globalThis.runtimeEnv = {
   "PORT": 8002,
+  "API_URL": "http:\u002F\u002Flocalhost:8002\u002Fapi",
 }

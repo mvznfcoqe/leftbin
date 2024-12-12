@@ -3,7 +3,10 @@
   "properties": {
     "PORT": {
       "type": "number"
+    },
+    "API_URL": {
+      "type": "string"
     }
   },
-  "required": []
+  "required": ["API_URL"]
 }

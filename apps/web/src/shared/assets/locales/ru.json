@@ -1,0 +1,11 @@
+{
+  "page": {
+    "services": {
+      "title": "Сервисы",
+      
+      "service-card": {
+        "methods": "Методы"
+      }
+    }
+  }
+}

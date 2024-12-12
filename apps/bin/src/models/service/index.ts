@@ -11,3 +11,4 @@ export {
   getMethodFnByName,
   getMethodPreviousDataByLastId,
 } from "./lib";
+export { getMethodsById, getMethodById } from "./get-methods";

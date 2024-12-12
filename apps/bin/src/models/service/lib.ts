@@ -265,15 +265,17 @@ const addService = async ({
       });
     }
 
-    await db.insert(schema.userServiceMethod).values({
-      active: true,
-      serviceId: insertedService.id,
-      methodId: insertedMethod.id,
-      notifyAbout: method.notifyAbout || defaultNotifyAbout,
-      userId: user.id,
-      recheckTime: method.recheckTime,
-      randomizeRecheckTime: true,
-    });
+    if (env.START_ALL_USER_METHODS) {
+      await db.insert(schema.userServiceMethod).values({
+        active: true,
+        serviceId: insertedService.id,
+        methodId: insertedMethod.id,
+        notifyAbout: method.notifyAbout || defaultNotifyAbout,
+        userId: user.id,
+        recheckTime: method.recheckTime,
+        randomizeRecheckTime: true,
+      });
+    }
   }
 };
 
@@ -395,4 +397,5 @@ export {
   getMethodPreviousDataByLastId,
   getMethodRecheckTime,
   sleep,
+  getMethodUrl,
 };

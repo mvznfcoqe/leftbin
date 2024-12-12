@@ -181,7 +181,7 @@ const cookie = sqliteTable("cookie", {
     .$onUpdate(() => new Date()),
 });
 
-export {
+const schema = {
   bin,
   cookie,
   service,
@@ -192,3 +192,5 @@ export {
   user,
   userServiceMethod,
 };
+
+export { schema };

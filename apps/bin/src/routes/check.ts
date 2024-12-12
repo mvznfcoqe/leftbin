@@ -1,9 +1,26 @@
-import Elysia from "elysia";
+import Elysia, { t } from "elysia";
 
-export const check = new Elysia({
-  name: "check",
-  tags: ["check"],
-  prefix: "/check",
-}).get("/", () => {
-  return { ok: true };
-});
+const checkRoute = new Elysia({ prefix: "/check" }).get(
+  "/",
+  () => {
+    return { ok: true };
+  },
+  {
+    detail: {
+      responses: {
+        "200": {
+          description: "Success",
+          content: {
+            "application/json": {
+              schema: t.Object({
+                ok: t.Boolean(),
+              }),
+            },
+          },
+        },
+      },
+    },
+  }
+);
+
+export { checkRoute }

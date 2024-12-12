@@ -1,10 +1,20 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { MainPage } from "./main";
+import { ServicesPage } from "./services";
+import { ServiceMethodsPage } from "./service-methods";
+import { MethodPage } from "./method";
 
 const routes = [
   {
     path: "/",
-    component: MainPage,
+    component: ServicesPage,
+  },
+  {
+    path: "/:serviceId/methods",
+    component: ServiceMethodsPage,
+  },
+  {
+    path: "/:serviceId/methods/:methodId",
+    component: MethodPage,
   },
 ];
 

@@ -1,0 +1,14 @@
+{
+  "page": {
+    "services": {
+      "title": "Services",
+
+      "service-card": {
+        "methods": "Methods"
+      }
+    }
+  },
+  "shared": {
+    "open": "Open"
+  }
+}

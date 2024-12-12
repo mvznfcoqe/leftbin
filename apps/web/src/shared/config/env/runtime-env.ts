@@ -19,5 +19,6 @@ declare global {
 }
 
 export type RuntimeEnv = DeepReadonly<{
-  PORT: number;
+  PORT?: number;
+  API_URL: string;
 }>

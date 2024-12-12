@@ -1,4 +1,4 @@
-import * as schema from "./schema";
+export { schema } from "./schema";
+export { schemaTypebox } from "./typebox";
 
-export { schema };
 export { db } from "./db";

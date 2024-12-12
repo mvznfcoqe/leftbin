@@ -3,7 +3,7 @@ import { db, schema } from "@/schema";
 import { eq } from "drizzle-orm";
 import Elysia, { t } from "elysia";
 
-const telegram = new Elysia({ prefix: "/telegram", }).post(
+const telegram = new Elysia({ prefix: "/telegram" }).post(
   "/setup",
   async ({ body, error, set }) => {
     const user = await getCurrentUser();
@@ -25,6 +25,13 @@ const telegram = new Elysia({ prefix: "/telegram", }).post(
     body: t.Object({
       telegramId: t.Number({ minimum: 1 }),
     }),
+    detail: {
+      responses: {
+        "200": {
+          description: "Success",
+        },
+      },
+    },
   }
 );
 
